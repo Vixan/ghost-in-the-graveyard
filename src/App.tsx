@@ -1,41 +1,51 @@
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useEffect } from "react";
 import { Layer, Stage } from "react-konva";
-import { Agent } from "./components/Agent";
 import { Grid } from "./components/Grid";
+import { Ghost } from "./components/Ghost";
+import { GridSize } from "./types/grid";
+import styled from "styled-components";
+
+const GRID_CELL_SIZE = 50;
+const GRID_SIZE: GridSize = Object.freeze({ width: 10, height: 10 });
+
+const Wrapper = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 100%;
+  height: 100vh;
+  background-color: #35363a;
+`;
 
 export const App: FC<{}> = () => {
-  const [agentPosition, setAgentPosition] = useState({ x: 50, y: 50 });
-
-  useEffect(() => {
-    const randomAgentPositionInterval = setInterval(() => {
-      const randomCell = {
-        x: Math.floor(Math.random() * 12),
-        y: Math.floor(Math.random() * 12)
-      };
-
-      setAgentPosition(randomCell);
-    }, 500);
-
-    return () => {
-      clearInterval(randomAgentPositionInterval);
-    };
-  }, []);
+  useEffect(() => {}, []);
 
   return (
-    <div className="flex items-center justify-center w-full h-screen bg-gray-800">
-      <Stage width={600} height={600} className="p-4 bg-gray-500 shadow-2xl">
+    <Wrapper>
+      <Stage
+        width={GRID_SIZE.width * GRID_CELL_SIZE}
+        height={GRID_SIZE.height * GRID_CELL_SIZE}
+        className="p-4">
         <Layer>
-          <Grid cellSize={50} rows={12} cols={12} cellBorderColor="#cccccc" />
+          <Grid
+            cellSize={GRID_CELL_SIZE}
+            rows={GRID_SIZE.height}
+            cols={GRID_SIZE.width}
+            cellBorderColor="#35363A"
+            cellFillColor="#1D1D20"
+          />
 
-          <Agent
-            x={agentPosition.x * 50}
-            y={agentPosition.y * 50}
-            width={50}
-            height={50}
-            color="#ff0000"
+          <Ghost
+            width={GRID_CELL_SIZE}
+            height={GRID_CELL_SIZE}
+            gridSize={GRID_SIZE}
+            initialPosition={{
+              x: 0,
+              y: 0
+            }}
           />
         </Layer>
       </Stage>
-    </div>
+    </Wrapper>
   );
 };

@@ -7,19 +7,28 @@ interface Props {
   width: number;
   height: number;
   color: string;
+  text: string;
 }
 
-export const Agent: FC<Props> = ({ x, y, width, height, color }) => {
+export const Agent: FC<Props> = ({ x, y, width, height, color, text }) => {
   return (
     <Group x={x} y={y}>
-      <Rect width={width} height={height} fill={color} />
+      <Rect
+        width={width}
+        height={height}
+        fill={color}
+        strokeWidth={10}
+        stroke="#35363A"
+        cornerRadius={10}
+      />
       <Text
-        text="Agent"
+        text={text}
         align="center"
         verticalAlign="middle"
         width={width}
         height={height}
         fill="#fff"
+        fontSize={8}
       />
     </Group>
   );

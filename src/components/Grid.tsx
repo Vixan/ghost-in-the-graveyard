@@ -4,11 +4,18 @@ import { Group, Rect } from "react-konva";
 interface Props {
   cellSize: number;
   cellBorderColor: string;
+  cellFillColor: string;
   rows: number;
   cols: number;
 }
 
-export const Grid: FC<Props> = ({ cellSize, cellBorderColor, rows, cols }) => {
+export const Grid: FC<Props> = ({
+  cellSize,
+  cellBorderColor,
+  cellFillColor,
+  rows,
+  cols
+}) => {
   const cells = [];
 
   for (let row = 0; row < rows; row++) {
@@ -31,7 +38,11 @@ export const Grid: FC<Props> = ({ cellSize, cellBorderColor, rows, cols }) => {
           height={cellSize}
           key={cell.key}
           stroke={cellBorderColor}
-          strokeWidth={1}
+          strokeWidth={10}
+          fill={cellFillColor}
+          className="m-5"
+          opacity={0.5}
+          cornerRadius={10}
         />
       ))}
     </Group>
