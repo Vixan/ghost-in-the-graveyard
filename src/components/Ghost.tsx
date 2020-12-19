@@ -1,41 +1,19 @@
-import React, { FC, useEffect, useState } from "react";
-import { Position } from "../types/position";
-import { getRandomAgentPosition } from "../utils/agentUtils";
-import { GridSize } from "../types/grid";
+import React, { FC } from "react";
+import { GhostAgent } from "../types/ghostAgent";
+import { GRID_CELL_SIZE } from "../types/grid";
 import { Agent } from "./Agent";
 
-interface Props {
-  initialPosition: Position;
-  gridSize: GridSize;
-  width: number;
-  height: number;
-}
+interface Props extends GhostAgent {}
 
-export const Ghost: FC<Props> = ({
-  initialPosition,
-  gridSize,
-  width,
-  height
-}: Props) => {
-  const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
-
-  const wander = () => {
-    const randomPosition = getRandomAgentPosition(initialPosition, gridSize);
-    setPosition(randomPosition);
-  };
-
-  useEffect(() => {
-    setPosition(initialPosition);
-  }, []);
-
+export const Ghost: FC<Props> = ({ id, position }) => {
   return (
     <Agent
-      x={position.x * width}
-      y={position.y * height}
-      width={width}
-      height={height}
+      x={position.x * GRID_CELL_SIZE}
+      y={position.y * GRID_CELL_SIZE}
+      width={GRID_CELL_SIZE}
+      height={GRID_CELL_SIZE}
       color="#CC5A71"
-      text="Ghost"
+      text={`Ghost ${id}`}
     />
   );
 };

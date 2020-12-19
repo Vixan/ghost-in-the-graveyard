@@ -1,16 +1,13 @@
-import { GridSize } from "../types/grid";
 import { Position } from "../types/position";
+import { GRID_SIZE } from "../types/grid";
 
 const random = (max: number) => Math.floor(Math.random() * max);
 
 // INFO: Move Up, Down, Left or Right
-export const getRandomAgentPosition = (
-  currentPosition: Position,
-  gridSize: GridSize
-) => {
+export const getRandomAgentPosition = (currentPosition: Position) => {
   const randomMovementDirection = random(4);
   let { x, y } = currentPosition;
-  let { width, height } = gridSize;
+  let { width, height } = GRID_SIZE;
 
   if (randomMovementDirection === 0 && x < width) {
     x = x + 1;

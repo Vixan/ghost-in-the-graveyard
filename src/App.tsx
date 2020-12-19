@@ -1,12 +1,9 @@
 import React, { FC, useEffect } from "react";
 import { Layer, Stage } from "react-konva";
-import { Grid } from "./components/Grid";
-import { Ghost } from "./components/Ghost";
-import { GridSize } from "./types/grid";
 import styled from "styled-components";
-
-const GRID_CELL_SIZE = 50;
-const GRID_SIZE: GridSize = Object.freeze({ width: 10, height: 10 });
+import { useGhosts } from "./agents/ghost";
+import { Grid } from "./components/Grid";
+import { GRID_CELL_SIZE, GRID_SIZE } from "./types/grid";
 
 const Wrapper = styled.div`
   display: flex;
@@ -18,7 +15,22 @@ const Wrapper = styled.div`
 `;
 
 export const App: FC<{}> = () => {
-  useEffect(() => {}, []);
+  const [ghosts, wanderGhosts] = useGhosts({
+    beliefs: [
+      { id: "1", position: { x: 0, y: 0 } },
+      { id: "2", position: { x: 4, y: 3 } }
+    ]
+  });
+
+  useEffect(() => {
+    const reasoningLoop = setInterval(() => {
+      wanderGhosts();
+    }, 1000);
+
+    return () => {
+      clearInterval(reasoningLoop);
+    };
+  }, []);
 
   return (
     <Wrapper>
@@ -35,15 +47,7 @@ export const App: FC<{}> = () => {
             cellFillColor="#1D1D20"
           />
 
-          <Ghost
-            width={GRID_CELL_SIZE}
-            height={GRID_CELL_SIZE}
-            gridSize={GRID_SIZE}
-            initialPosition={{
-              x: 0,
-              y: 0
-            }}
-          />
+          {ghosts}
         </Layer>
       </Stage>
     </Wrapper>
