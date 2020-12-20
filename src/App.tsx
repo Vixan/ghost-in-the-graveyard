@@ -1,7 +1,7 @@
 import React, { FC, useEffect } from "react";
 import { Layer, Stage } from "react-konva";
 import styled from "styled-components";
-import { useGhosts } from "./agents/ghost";
+import { useGhosts } from "./components/Ghost";
 import { Grid } from "./components/Grid";
 import { GRID_CELL_SIZE, GRID_SIZE } from "./types/grid";
 

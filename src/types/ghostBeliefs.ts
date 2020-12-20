@@ -1,6 +1,6 @@
 import { Position } from "./position";
 
-export interface GhostAgent {
+export interface GhostBeliefs {
   id: string;
   position: Position;
   isFound?: boolean;
