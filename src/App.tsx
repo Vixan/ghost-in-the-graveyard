@@ -1,9 +1,12 @@
 import React, { FC, useEffect, useState } from "react";
 import { Layer, Stage } from "react-konva";
 import styled, { css } from "styled-components";
-import { Ghost, GhostBeliefs } from "./components/Ghost";
+import { Exit } from "./components/Exit";
+import { Ghost, GhostBeliefs, GhostPlan } from "./components/Ghost";
 import { Grid, GRID_CELL_SIZE, GRID_SIZE } from "./components/Grid";
-import { Player, PlayerBeliefs } from "./components/Player";
+import { Player, PlayerBeliefs, PlayerPlan } from "./components/Player";
+import { TombstoneBeliefs, Tombstone } from "./components/Tombstone";
+import { Position } from "./types/position";
 import {
   getRandomAgentPosition,
   getRandomInitialAgentPosition
@@ -44,6 +47,11 @@ const PlayButton = styled.button<{ paused: boolean }>`
 
 const GHOST_COUNT = 2;
 const PLAYER_COUNT = 2;
+const TOMBSTONES_COUNT = 8;
+const EXIT_POSITION: Position = {
+  x: GRID_SIZE.height / 2 - 1,
+  y: GRID_SIZE.width - 1
+};
 
 enum SimulationStatus {
   Running,
@@ -57,6 +65,7 @@ export const App: FC<{}> = () => {
   );
   const [ghosts, setGhosts] = useState<GhostBeliefs[]>([]);
   const [players, setPlayers] = useState<PlayerBeliefs[]>([]);
+  const [tombstones, setTombstones] = useState<TombstoneBeliefs[]>([]);
 
   useEffect(() => {
     const ghostsToCreate: GhostBeliefs[] = [...Array(GHOST_COUNT).keys()].map(
@@ -64,7 +73,7 @@ export const App: FC<{}> = () => {
         id: i,
         position: getRandomInitialAgentPosition(),
         isFound: false,
-        plan: "Wander"
+        plan: GhostPlan.Wander
       })
     );
 
@@ -76,16 +85,33 @@ export const App: FC<{}> = () => {
       id: i,
       position: getRandomInitialAgentPosition(),
       isFound: false,
-      plan: "Wander"
+      plan: PlayerPlan.Wander
     }));
 
     setPlayers(playersToCreate);
+
+    const tombstonesToCreate: TombstoneBeliefs[] = [
+      ...Array(TOMBSTONES_COUNT).keys()
+    ].map(i => ({
+      id: i,
+      position: getRandomInitialAgentPosition()
+    }));
+
+    setTombstones(tombstonesToCreate);
   }, []);
 
   useEffect(() => {
     const updateGhosts = () => {
       const ghostsToUpdate = ghosts.map(ghost => {
-        if (ghost.plan === "Wander") {
+        if (players.some(player => player.position === ghost.position)) {
+          return {
+            ...ghost,
+            isFound: true,
+            plan: GhostPlan.ChasePlayer
+          };
+        }
+
+        if (ghost.plan === GhostPlan.Wander) {
           return {
             ...ghost,
             position: getRandomAgentPosition(ghost.position)
@@ -100,7 +126,7 @@ export const App: FC<{}> = () => {
 
     const updatePlayers = () => {
       const playersToUpdate = players.map(player => {
-        if (player.plan === "Wander") {
+        if (player.plan === PlayerPlan.Wander) {
           return {
             ...player,
             position: getRandomAgentPosition(player.position)
@@ -157,6 +183,16 @@ export const App: FC<{}> = () => {
             cellFillColor="#1D1D20"
           />
 
+          {tombstones.map(tombstone => (
+            <Tombstone
+              key={tombstone.id}
+              id={tombstone.id}
+              position={tombstone.position}
+            />
+          ))}
+
+          <Exit id={0} position={EXIT_POSITION} />
+
           {ghosts.map(ghost => (
             <Ghost
               key={ghost.id}
@@ -173,7 +209,7 @@ export const App: FC<{}> = () => {
               id={player.id}
               position={player.position}
               plan={player.plan}
-              isFound={player.isFound}
+              isEscaping={player.isEscaping}
             />
           ))}
         </Layer>

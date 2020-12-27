@@ -1,23 +1,32 @@
-import React, { FC } from "react";
+import React, { FC, useEffect, useState } from "react";
 import { Position } from "../types/position";
 import { Agent } from "./Agent";
 import { GRID_CELL_SIZE } from "./Grid";
 
-export type PlayerPlan = "Wander" | "Escape";
+export enum PlayerPlan {
+  Wander,
+  Escape
+}
 
 export interface PlayerBeliefs {
   id: number;
   position: Position;
   plan: PlayerPlan;
-  isFound?: boolean;
+  isEscaping?: boolean;
 }
 
 export const Player: FC<PlayerBeliefs> = ({
   id,
   position,
   plan,
-  isFound = false
+  isEscaping = false
 }) => {
+  const [playerIcon, setPlayerIcon] = useState<string>("🧍‍♂️");
+
+  useEffect(() => {
+    setPlayerIcon(Math.random() > 0.5 ? "🧍‍♂️" : "🧍‍♀️");
+  }, []);
+
   return (
     <Agent
       id={id}
@@ -26,7 +35,7 @@ export const Player: FC<PlayerBeliefs> = ({
       width={GRID_CELL_SIZE}
       height={GRID_CELL_SIZE}
       color="#0a9dae"
-      text={`🧍‍♂️`}
+      text={playerIcon}
     />
   );
 };

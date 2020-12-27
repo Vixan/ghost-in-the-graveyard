@@ -3,23 +3,14 @@ import { Position } from "../types/position";
 import { Agent } from "./Agent";
 import { GRID_CELL_SIZE } from "./Grid";
 
-export enum GhostPlan {
-  Wander,
-  ChasePlayer
-}
-
-export interface GhostBeliefs {
+export interface TombstoneBeliefs {
   id: number;
   position: Position;
-  plan: GhostPlan;
-  isFound?: boolean;
 }
 
-export const Ghost: FC<GhostBeliefs> = ({
+export const Tombstone: FC<TombstoneBeliefs> = ({
   id,
   position,
-  plan,
-  isFound = false
 }) => {
   return (
     <Agent
@@ -28,8 +19,8 @@ export const Ghost: FC<GhostBeliefs> = ({
       y={position.y * GRID_CELL_SIZE}
       width={GRID_CELL_SIZE}
       height={GRID_CELL_SIZE}
-      color="#CC5A71"
-      text={`👻`}
+      color="#292A2D"
+      text="⬛"
     />
   );
 };
