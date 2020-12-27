@@ -5,12 +5,13 @@ import { Exit } from "./components/Exit";
 import { Ghost, GhostBeliefs, GhostPlan } from "./components/Ghost";
 import { Grid, GRID_CELL_SIZE, GRID_SIZE } from "./components/Grid";
 import { Player, PlayerBeliefs, PlayerPlan } from "./components/Player";
-import { TombstoneBeliefs, Tombstone } from "./components/Tombstone";
+import { Tombstone, TombstoneBeliefs } from "./components/Tombstone";
 import { Position } from "./types/position";
 import {
   getRandomAgentPosition,
   getRandomInitialAgentPosition
 } from "./utils/agentUtils";
+import PF from "pathfinding";
 
 const Wrapper = styled.div`
   display: flex;
@@ -46,7 +47,7 @@ const PlayButton = styled.button<{ paused: boolean }>`
 `;
 
 const GHOST_COUNT = 2;
-const PLAYER_COUNT = 2;
+const PLAYER_COUNT = 3;
 const TOMBSTONES_COUNT = 8;
 const EXIT_POSITION: Position = {
   x: GRID_SIZE.height / 2 - 1,
@@ -61,7 +62,7 @@ enum SimulationStatus {
 
 export const App: FC<{}> = () => {
   const [simulationStatus, setSimulationStatus] = useState(
-    SimulationStatus.Running
+    SimulationStatus.Paused
   );
   const [ghosts, setGhosts] = useState<GhostBeliefs[]>([]);
   const [players, setPlayers] = useState<PlayerBeliefs[]>([]);
@@ -101,6 +102,35 @@ export const App: FC<{}> = () => {
   }, []);
 
   useEffect(() => {
+    const findPath = (startCell: Position, endCell: Position): number[][] => {
+      let map = new Array(GRID_SIZE.width)
+        .fill(0)
+        .map(() => new Array(GRID_SIZE.height).fill(0));
+
+      ghosts.forEach(ghost => {
+        map[ghost.position.y][ghost.position.x] = 1;
+      });
+      players.forEach(player => {
+        map[player.position.y][player.position.x] = 1;
+      });
+      tombstones.forEach(tombstone => {
+        map[tombstone.position.y][tombstone.position.x] = 1;
+      });
+
+      const grid = new PF.Grid(map);
+
+      const finder = new PF.AStarFinder();
+      const path = finder.findPath(
+        startCell.x,
+        startCell.y,
+        endCell.x,
+        endCell.y,
+        grid
+      );
+
+      return path;
+    };
+
     const updateGhosts = () => {
       const ghostsToUpdate = ghosts.map(ghost => {
         if (players.some(player => player.position === ghost.position)) {
@@ -127,16 +157,31 @@ export const App: FC<{}> = () => {
     const updatePlayers = () => {
       const playersToUpdate = players.map(player => {
         if (player.plan === PlayerPlan.Wander) {
-          return {
-            ...player,
-            position: getRandomAgentPosition(player.position)
-          };
+          const pathToExit = findPath(player.position, EXIT_POSITION)?.slice(
+            1
+          )?.[0];
+          console.log(pathToExit);
+
+          if (pathToExit?.length > 0) {
+            return {
+              ...player,
+              position: { x: pathToExit[0], y: pathToExit[1] }
+            };
+          }
         }
 
         return player;
       });
 
-      setPlayers(playersToUpdate);
+      setPlayers(
+        playersToUpdate.filter(
+          p =>
+            !(
+              p.position.x === EXIT_POSITION.x &&
+              p.position.y === EXIT_POSITION.y
+            )
+        )
+      );
     };
 
     if (simulationStatus !== SimulationStatus.Running) {
@@ -146,12 +191,12 @@ export const App: FC<{}> = () => {
     const reasoningLoop = setInterval(() => {
       updateGhosts();
       updatePlayers();
-    }, 1000);
+    }, 500);
 
     return () => {
       clearInterval(reasoningLoop);
     };
-  }, [ghosts, players, simulationStatus]);
+  }, [ghosts, players, tombstones, simulationStatus]);
 
   const toggleSimulationStatus = () => {
     if (simulationStatus === SimulationStatus.Running) {
