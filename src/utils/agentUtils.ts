@@ -1,5 +1,5 @@
 import { Position } from "../types/position";
-import { GRID_SIZE } from "../types/grid";
+import { GRID_SIZE } from "../components/Grid";
 
 const random = (max: number) => Math.floor(Math.random() * max);
 
@@ -9,7 +9,7 @@ export const getRandomAgentPosition = (currentPosition: Position) => {
   let { x, y } = currentPosition;
   let { width, height } = GRID_SIZE;
 
-  if (randomMovementDirection === 0 && x < width) {
+  if (randomMovementDirection === 0 && x < width - 1) {
     x = x + 1;
   }
 
@@ -17,7 +17,7 @@ export const getRandomAgentPosition = (currentPosition: Position) => {
     x = x - 1;
   }
 
-  if (randomMovementDirection === 2 && y < height) {
+  if (randomMovementDirection === 2 && y < height - 1) {
     y = y + 1;
   }
 
@@ -26,4 +26,10 @@ export const getRandomAgentPosition = (currentPosition: Position) => {
   }
 
   return { x, y };
+};
+
+export const getRandomInitialAgentPosition = () => {
+  let { width, height } = GRID_SIZE;
+
+  return { x: random(width - 1), y: random(height - 1) };
 };

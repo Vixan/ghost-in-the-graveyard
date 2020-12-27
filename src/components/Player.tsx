@@ -3,16 +3,16 @@ import { Position } from "../types/position";
 import { Agent } from "./Agent";
 import { GRID_CELL_SIZE } from "./Grid";
 
-export type GhostPlan = "Wander" | "ChasePlayer";
+export type PlayerPlan = "Wander" | "Escape";
 
-export interface GhostBeliefs {
+export interface PlayerBeliefs {
   id: number;
   position: Position;
-  plan: GhostPlan;
+  plan: PlayerPlan;
   isFound?: boolean;
 }
 
-export const Ghost: FC<GhostBeliefs> = ({
+export const Player: FC<PlayerBeliefs> = ({
   id,
   position,
   plan,
@@ -25,8 +25,8 @@ export const Ghost: FC<GhostBeliefs> = ({
       y={position.y * GRID_CELL_SIZE}
       width={GRID_CELL_SIZE}
       height={GRID_CELL_SIZE}
-      color="#CC5A71"
-      text={`👻`}
+      color="#0a9dae"
+      text={`🧍‍♂️`}
     />
   );
 };
