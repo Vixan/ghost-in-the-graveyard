@@ -36,6 +36,7 @@ export const Player: FC<PlayerBeliefs> = ({
       height={GRID_CELL_SIZE}
       color="#0a9dae"
       text={playerIcon}
+      viewRadius={1}
     />
   );
 };

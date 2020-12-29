@@ -160,7 +160,6 @@ export const App: FC<{}> = () => {
           const pathToExit = findPath(player.position, EXIT_POSITION)?.slice(
             1
           )?.[0];
-          console.log(pathToExit);
 
           if (pathToExit?.length > 0) {
             return {

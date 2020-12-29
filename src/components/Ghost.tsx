@@ -30,6 +30,7 @@ export const Ghost: FC<GhostBeliefs> = ({
       height={GRID_CELL_SIZE}
       color="#CC5A71"
       text={`👻`}
+      viewRadius={1}
     />
   );
 };
