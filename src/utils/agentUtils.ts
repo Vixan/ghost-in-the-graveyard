@@ -1,35 +1,70 @@
 import { Position } from "../types/position";
 import { GRID_SIZE } from "../components/Grid";
+import PF from "pathfinding";
 
 const random = (max: number) => Math.floor(Math.random() * max);
 
-// INFO: Move Up, Down, Left or Right
-export const getRandomAgentPosition = (currentPosition: Position) => {
-  const randomMovementDirection = random(4);
-  let { x, y } = currentPosition;
-  let { width, height } = GRID_SIZE;
+export const getNextRandomAvailablePosition = (
+  binaryGrid: number[][],
+  currentPosition: Position
+) => {
+  const { x, y } = currentPosition;
 
-  if (randomMovementDirection === 0 && x < width - 1) {
-    x = x + 1;
-  }
+  // INFO: Move Up, Down, Left or Right
+  const possibleNextPositions = [
+    { x, y: y - 1 },
+    { x: x + 1, y },
+    { x, y: y + 1 },
+    { x: x - 1, y }
+  ].filter(({ x, y }) => binaryGrid[y]?.[x] === 0);
 
-  if (randomMovementDirection === 1 && x > 0) {
-    x = x - 1;
-  }
+  const randomMovementDirection = random(possibleNextPositions.length);
 
-  if (randomMovementDirection === 2 && y < height - 1) {
-    y = y + 1;
-  }
-
-  if (randomMovementDirection === 3 && y > 0) {
-    y = y - 1;
-  }
-
-  return { x, y };
+  return possibleNextPositions[randomMovementDirection];
 };
 
-export const getRandomInitialAgentPosition = () => {
+export const getRandomAvailablePosition = () => {
   let { width, height } = GRID_SIZE;
 
   return { x: random(width - 1), y: random(height - 1) };
+};
+
+// export const getRandomAvailablePosition = (
+//   binaryGrid: number[][],
+//   exitPosition: Position
+// ) => {
+//   const availablePositions: Position[] = [];
+
+//   for (let row = 0; row < binaryGrid.length; row++) {
+//     for (let col = 0; col < binaryGrid[row].length; col++) {
+//       if (
+//         !binaryGrid[row][col] &&
+//         row !== exitPosition.x &&
+//         col !== exitPosition.y
+//       ) {
+//         availablePositions.push({ x: row, y: col });
+//       }
+//     }
+//   }
+
+//   return availablePositions[random(availablePositions.length)];
+// };
+
+export const findPath = (
+  binaryGrid: number[][],
+  startCell: Position,
+  endCell: Position
+): number[][] => {
+  const grid = new PF.Grid(binaryGrid);
+
+  const finder = new PF.AStarFinder();
+  const path = finder.findPath(
+    startCell.x,
+    startCell.y,
+    endCell.x,
+    endCell.y,
+    grid
+  );
+
+  return path;
 };

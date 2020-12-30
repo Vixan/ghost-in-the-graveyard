@@ -1,14 +1,14 @@
 import React, { FC } from "react";
-import { Position } from "../types/position";
+import { Position } from "../../types/position";
 import { Agent } from "./Agent";
-import { GRID_CELL_SIZE } from "./Grid";
+import { GRID_CELL_SIZE } from "../Grid";
 
-export interface TombstoneBeliefs {
+export interface ExitBeliefs {
   id: number;
   position: Position;
 }
 
-export const Tombstone: FC<TombstoneBeliefs> = ({
+export const Exit: FC<ExitBeliefs> = ({
   id,
   position,
 }) => {
@@ -19,8 +19,8 @@ export const Tombstone: FC<TombstoneBeliefs> = ({
       y={position.y * GRID_CELL_SIZE}
       width={GRID_CELL_SIZE}
       height={GRID_CELL_SIZE}
-      color="#292A2D"
-      text="⬛"
+      color="#0dab76"
+      text=""
     />
   );
 };

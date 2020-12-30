@@ -1,6 +1,6 @@
 import React, { FC, useEffect, useState } from "react";
 import { Group, Rect, Text } from "react-konva";
-import { Position } from "../types/position";
+import { Position } from "../../types/position";
 
 interface Props {
   id: number;
@@ -11,6 +11,7 @@ interface Props {
   color: string;
   text: string;
   viewRadius?: number;
+  displayViewArea?: boolean;
 }
 
 export const Agent: FC<Props> = ({
@@ -21,12 +22,19 @@ export const Agent: FC<Props> = ({
   height,
   color,
   text,
-  viewRadius = 0
+  viewRadius = 0,
+  displayViewArea = false
 }) => {
   const [isHovered, setHovered] = useState<boolean>(false);
   const [viewArea, setViewArea] = useState<Position[]>([]);
 
   useEffect(() => {
+    if (!displayViewArea) {
+      setViewArea([]);
+
+      return;
+    }
+
     const newViewArea = [...Array(viewRadius)]
       .map((_, i) => [
         { x: 0, y: -height * (i + 1) },
@@ -37,7 +45,7 @@ export const Agent: FC<Props> = ({
       .flat();
 
     setViewArea(newViewArea);
-  }, [height, viewRadius, width]);
+  }, [height, viewRadius, width, displayViewArea]);
 
   return (
     <Group
@@ -55,7 +63,7 @@ export const Agent: FC<Props> = ({
           strokeWidth={10}
           stroke="#35363A"
           fill={color}
-          opacity={0.1}
+          opacity={0.2}
           cornerRadius={10}
         />
       ))}
