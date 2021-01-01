@@ -49,9 +49,9 @@ const ActionsPanel = styled.div`
   color: #aaaaaa;
 `;
 
-const GHOST_COUNT = 2;
+const GHOST_COUNT = 3;
 const PLAYER_COUNT = 3;
-const TOMBSTONES_COUNT = 12;
+const TOMBSTONES_COUNT = 20;
 const EXIT_POSITION: Position = {
   x: GRID_SIZE.height / 2 - 1,
   y: GRID_SIZE.width - 1
@@ -67,9 +67,24 @@ export const App: FC<{}> = () => {
   const [simulationStatus, setSimulationStatus] = useState(
     SimulationStatus.Paused
   );
-  const { ghosts, renderGhosts, updateGhosts } = useGhosts(GHOST_COUNT);
-  const { players, renderPlayers, updatePlayers } = usePlayers(PLAYER_COUNT);
-  const { tombstones, renderedTombstones } = useTombstones(TOMBSTONES_COUNT);
+  const binaryGrid = new Array(GRID_SIZE.width)
+    .fill(0)
+    .map(() => new Array(GRID_SIZE.height).fill(0));
+  const { tombstones, renderedTombstones } = useTombstones(
+    binaryGrid,
+    EXIT_POSITION,
+    TOMBSTONES_COUNT
+  );
+  const { ghosts, renderGhosts, updateGhosts } = useGhosts(
+    binaryGrid,
+    EXIT_POSITION,
+    GHOST_COUNT
+  );
+  const { players, renderPlayers, updatePlayers } = usePlayers(
+    binaryGrid,
+    EXIT_POSITION,
+    PLAYER_COUNT
+  );
   const [displayAgentViewArea, setDisplayAgentViewArea] = useState<boolean>(
     false
   );

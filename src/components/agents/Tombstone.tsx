@@ -1,8 +1,8 @@
 import React, { FC, useEffect, useState } from "react";
 import { Position } from "../../types/position";
-import { Agent } from "./Agent";
-import { GRID_CELL_SIZE } from "../Grid";
 import { getRandomAvailablePosition } from "../../utils/agentUtils";
+import { GRID_CELL_SIZE } from "../Grid";
+import { Agent } from "./Agent";
 
 export interface TombstoneBeliefs {
   id: number;
@@ -23,18 +23,34 @@ export const Tombstone: FC<TombstoneBeliefs> = ({ id, position }) => {
   );
 };
 
-export const useTombstones = (tombstoneCount: number) => {
+export const useTombstones = (
+  binaryGrid: number[][],
+  exitPosition: Position,
+  tombstoneCount: number
+) => {
   const [tombstones, setTombstones] = useState<TombstoneBeliefs[]>([]);
 
   useEffect(() => {
     const tombstonesToCreate: TombstoneBeliefs[] = [
       ...Array(tombstoneCount).keys()
-    ].map(i => ({
-      id: i,
-      position: getRandomAvailablePosition()
-    }));
+    ].map(i => {
+      const randomPosition = getRandomAvailablePosition(
+        binaryGrid,
+        exitPosition
+      );
 
-    setTombstones(tombstonesToCreate);
+      if (randomPosition) {
+        binaryGrid[randomPosition.x][randomPosition.y] = 1;
+      }
+
+      return {
+        id: i,
+        position: randomPosition
+      };
+    });
+
+    setTombstones(tombstonesToCreate.filter(t => t.position));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tombstoneCount]);
 
   const renderedTombstones = tombstones.map(tombstone => (

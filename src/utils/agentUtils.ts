@@ -1,6 +1,5 @@
-import { Position } from "../types/position";
-import { GRID_SIZE } from "../components/Grid";
 import PF from "pathfinding";
+import { Position } from "../types/position";
 
 const random = (max: number) => Math.floor(Math.random() * max);
 
@@ -23,32 +22,25 @@ export const getNextRandomAvailablePosition = (
   return possibleNextPositions[randomMovementDirection];
 };
 
-export const getRandomAvailablePosition = () => {
-  let { width, height } = GRID_SIZE;
+export const getRandomAvailablePosition = (
+  binaryGrid: number[][],
+  exitPosition: Position
+) => {
+  const availablePositions: Position[] = [];
 
-  return { x: random(width - 1), y: random(height - 1) };
+  for (let row = 0; row < binaryGrid.length; row++) {
+    for (let col = 0; col < binaryGrid[row].length; col++) {
+      if (
+        !binaryGrid[row][col] &&
+        !(row === exitPosition.x && col === exitPosition.y)
+      ) {
+        availablePositions.push({ x: row, y: col });
+      }
+    }
+  }
+
+  return availablePositions[random(availablePositions.length)];
 };
-
-// export const getRandomAvailablePosition = (
-//   binaryGrid: number[][],
-//   exitPosition: Position
-// ) => {
-//   const availablePositions: Position[] = [];
-
-//   for (let row = 0; row < binaryGrid.length; row++) {
-//     for (let col = 0; col < binaryGrid[row].length; col++) {
-//       if (
-//         !binaryGrid[row][col] &&
-//         row !== exitPosition.x &&
-//         col !== exitPosition.y
-//       ) {
-//         availablePositions.push({ x: row, y: col });
-//       }
-//     }
-//   }
-
-//   return availablePositions[random(availablePositions.length)];
-// };
 
 export const findPath = (
   binaryGrid: number[][],

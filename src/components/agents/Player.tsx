@@ -1,8 +1,12 @@
 import React, { FC, useEffect, useState } from "react";
 import { Position } from "../../types/position";
-import { Agent } from "./Agent";
+import {
+  findPath,
+  getNextRandomAvailablePosition,
+  getRandomAvailablePosition
+} from "../../utils/agentUtils";
 import { GRID_CELL_SIZE } from "../Grid";
-import { findPath, getRandomAvailablePosition } from "../../utils/agentUtils";
+import { Agent } from "./Agent";
 
 export enum PlayerPlan {
   Wander,
@@ -14,7 +18,7 @@ export interface PlayerBeliefs {
   position: Position;
   plan: PlayerPlan;
   isEscaping?: boolean;
-  displayViewArea?: boolean
+  displayViewArea?: boolean;
 }
 
 export const Player: FC<PlayerBeliefs> = ({
@@ -45,36 +49,62 @@ export const Player: FC<PlayerBeliefs> = ({
   );
 };
 
-export const usePlayers = (playerCount: number) => {
+export const usePlayers = (
+  binaryGrid: number[][],
+  exitPosition: Position,
+  playerCount: number
+) => {
   const [players, setPlayers] = useState<PlayerBeliefs[]>([]);
 
   useEffect(() => {
     const playersToCreate: PlayerBeliefs[] = [...Array(playerCount).keys()].map(
-      i => ({
-        id: i,
-        position: getRandomAvailablePosition(),
-        isFound: false,
-        plan: PlayerPlan.Wander
-      })
+      i => {
+        const randomPosition = getRandomAvailablePosition(
+          binaryGrid,
+          exitPosition
+        );
+
+        if (randomPosition) {
+          binaryGrid[randomPosition.x][randomPosition.y] = 1;
+        }
+
+        return {
+          id: i,
+          position: randomPosition,
+          isFound: false,
+          plan: PlayerPlan.Wander
+        };
+      }
     );
 
     setPlayers(playersToCreate);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playerCount]);
 
-  const renderPlayers = (displayViewArea?: boolean) => players.map(player => (
-    <Player
-      key={player.id}
-      id={player.id}
-      position={player.position}
-      plan={player.plan}
-      isEscaping={player.isEscaping}
-      displayViewArea={displayViewArea}
-    />
-  ));
+  const renderPlayers = (displayViewArea?: boolean) =>
+    players.map(player => (
+      <Player
+        key={player.id}
+        id={player.id}
+        position={player.position}
+        plan={player.plan}
+        isEscaping={player.isEscaping}
+        displayViewArea={displayViewArea}
+      />
+    ));
 
   const updatePlayers = (binaryGrid: number[][], exitPosition: Position) => {
     const playersToUpdate = players.map(player => {
       if (player.plan === PlayerPlan.Wander) {
+        return {
+          ...player,
+          position:
+            getNextRandomAvailablePosition(binaryGrid, player.position) ??
+            player.position
+        };
+      }
+
+      if (player.plan === PlayerPlan.Escape) {
         const pathToExit = findPath(
           binaryGrid,
           player.position,

@@ -4,8 +4,8 @@ import {
   getNextRandomAvailablePosition,
   getRandomAvailablePosition
 } from "../../utils/agentUtils";
-import { Agent } from "./Agent";
 import { GRID_CELL_SIZE } from "../Grid";
+import { Agent } from "./Agent";
 import { PlayerBeliefs } from "./Player";
 
 export enum GhostPlan {
@@ -43,20 +43,36 @@ export const Ghost: FC<GhostBeliefs> = ({
   );
 };
 
-export const useGhosts = (ghostCount: number) => {
+export const useGhosts = (
+  binaryGrid: number[][],
+  exitPosition: Position,
+  ghostCount: number
+) => {
   const [ghosts, setGhosts] = useState<GhostBeliefs[]>([]);
 
   useEffect(() => {
     const ghostsToCreate: GhostBeliefs[] = [...Array(ghostCount).keys()].map(
-      i => ({
-        id: i,
-        position: getRandomAvailablePosition(),
-        isFound: false,
-        plan: GhostPlan.Wander
-      })
+      i => {
+        const randomPosition = getRandomAvailablePosition(
+          binaryGrid,
+          exitPosition
+        );
+
+        if (randomPosition) {
+          binaryGrid[randomPosition.x][randomPosition.y] = 1;
+        }
+
+        return {
+          id: i,
+          position: randomPosition,
+          isFound: false,
+          plan: GhostPlan.Wander
+        };
+      }
     );
 
-    setGhosts(ghostsToCreate);
+    setGhosts(ghostsToCreate.filter(t => t.position));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ghostCount]);
 
   const renderGhosts = (displayViewArea?: boolean) =>
@@ -84,7 +100,9 @@ export const useGhosts = (ghostCount: number) => {
       if (ghost.plan === GhostPlan.Wander) {
         return {
           ...ghost,
-          position: getNextRandomAvailablePosition(binaryGrid, ghost.position)
+          position:
+            getNextRandomAvailablePosition(binaryGrid, ghost.position) ??
+            ghost.position
         };
       }
 
