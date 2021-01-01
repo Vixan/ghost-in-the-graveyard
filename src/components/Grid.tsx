@@ -7,7 +7,6 @@ export interface GridSize {
 }
 
 export const GRID_CELL_SIZE = 50;
-export const GRID_SIZE: GridSize = Object.freeze({ width: 10, height: 10 });
 
 interface Props {
   cellSize: number;
@@ -40,8 +39,8 @@ export const Grid: FC<Props> = ({
     <Group>
       {cells.map(cell => (
         <Rect
-          x={cell.row}
-          y={cell.col}
+          x={cell.col}
+          y={cell.row}
           width={cellSize}
           height={cellSize}
           key={cell.key}

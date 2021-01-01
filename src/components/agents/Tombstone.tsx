@@ -40,7 +40,7 @@ export const useTombstones = (
       );
 
       if (randomPosition) {
-        binaryGrid[randomPosition.x][randomPosition.y] = 1;
+        binaryGrid[randomPosition.y][randomPosition.x] = 1;
       }
 
       return {

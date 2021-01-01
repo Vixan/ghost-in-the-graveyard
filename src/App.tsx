@@ -5,7 +5,7 @@ import { Exit } from "./components/agents/Exit";
 import { useGhosts } from "./components/agents/Ghost";
 import { usePlayers } from "./components/agents/Player";
 import { useTombstones } from "./components/agents/Tombstone";
-import { Grid, GRID_CELL_SIZE, GRID_SIZE } from "./components/Grid";
+import { Grid, GRID_CELL_SIZE, GridSize } from "./components/Grid";
 import { ToggleButton } from "./components/ui/ToggleButton";
 import { Position } from "./types/position";
 
@@ -49,9 +49,10 @@ const ActionsPanel = styled.div`
   color: #aaaaaa;
 `;
 
-const GHOST_COUNT = 3;
-const PLAYER_COUNT = 3;
-const TOMBSTONES_COUNT = 20;
+export const GRID_SIZE: GridSize = { width: 10, height: 10 };
+const GHOST_COUNT = 6;
+const PLAYER_COUNT = 6;
+const TOMBSTONES_COUNT = 16;
 const EXIT_POSITION: Position = {
   x: GRID_SIZE.height / 2 - 1,
   y: GRID_SIZE.width - 1

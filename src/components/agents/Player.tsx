@@ -65,20 +65,20 @@ export const usePlayers = (
         );
 
         if (randomPosition) {
-          binaryGrid[randomPosition.x][randomPosition.y] = 1;
+          binaryGrid[randomPosition.y][randomPosition.x] = 1;
         }
 
         return {
           id: i,
           position: randomPosition,
-          isFound: false,
+          isEscaping: false,
           plan: PlayerPlan.Wander
         };
       }
     );
 
     setPlayers(playersToCreate);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playerCount]);
 
   const renderPlayers = (displayViewArea?: boolean) =>
@@ -96,11 +96,19 @@ export const usePlayers = (
   const updatePlayers = (binaryGrid: number[][], exitPosition: Position) => {
     const playersToUpdate = players.map(player => {
       if (player.plan === PlayerPlan.Wander) {
+        const randomPosition = getNextRandomAvailablePosition(
+          binaryGrid,
+          player.position
+        );
+
+        if (randomPosition) {
+          binaryGrid[randomPosition.y][randomPosition.x] = 1;
+          binaryGrid[player.position.y][player.position.x] = 0;
+        }
+
         return {
           ...player,
-          position:
-            getNextRandomAvailablePosition(binaryGrid, player.position) ??
-            player.position
+          position: randomPosition ?? player.position
         };
       }
 
@@ -125,7 +133,11 @@ export const usePlayers = (
     setPlayers(
       playersToUpdate.filter(
         p =>
-          !(p.position.x === exitPosition.x && p.position.y === exitPosition.y)
+          !(
+            p.isEscaping &&
+            p.position.x === exitPosition.x &&
+            p.position.y === exitPosition.y
+          )
       )
     );
   };

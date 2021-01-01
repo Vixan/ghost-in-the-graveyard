@@ -59,7 +59,7 @@ export const useGhosts = (
         );
 
         if (randomPosition) {
-          binaryGrid[randomPosition.x][randomPosition.y] = 1;
+          binaryGrid[randomPosition.y][randomPosition.x] = 1;
         }
 
         return {
@@ -72,7 +72,7 @@ export const useGhosts = (
     );
 
     setGhosts(ghostsToCreate.filter(t => t.position));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ghostCount]);
 
   const renderGhosts = (displayViewArea?: boolean) =>
@@ -89,20 +89,28 @@ export const useGhosts = (
 
   const updateGhosts = (binaryGrid: number[][], players: PlayerBeliefs[]) => {
     const ghostsToUpdate = ghosts.map(ghost => {
+      if (ghost.plan === GhostPlan.Wander) {
+        const randomPosition = getNextRandomAvailablePosition(
+          binaryGrid,
+          ghost.position
+        );
+
+        if (randomPosition) {
+          binaryGrid[randomPosition.y][randomPosition.x] = 1;
+          binaryGrid[ghost.position.y][ghost.position.x] = 0;
+        }
+
+        return {
+          ...ghost,
+          position: randomPosition ?? ghost.position
+        };
+      }
+
       if (players.some(player => player.position === ghost.position)) {
         return {
           ...ghost,
           isFound: true,
           plan: GhostPlan.ChasePlayer
-        };
-      }
-
-      if (ghost.plan === GhostPlan.Wander) {
-        return {
-          ...ghost,
-          position:
-            getNextRandomAvailablePosition(binaryGrid, ghost.position) ??
-            ghost.position
         };
       }
 

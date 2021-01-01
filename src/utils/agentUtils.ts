@@ -32,9 +32,9 @@ export const getRandomAvailablePosition = (
     for (let col = 0; col < binaryGrid[row].length; col++) {
       if (
         !binaryGrid[row][col] &&
-        !(row === exitPosition.x && col === exitPosition.y)
+        !(row === exitPosition.y && col === exitPosition.x)
       ) {
-        availablePositions.push({ x: row, y: col });
+        availablePositions.push({ x: col, y: row });
       }
     }
   }
