@@ -51,7 +51,7 @@ const ActionsPanel = styled.div`
 `;
 
 const GRID_SIZE: GridSize = { width: 10, height: 10 };
-const GHOST_COUNT = 3;
+const GHOST_COUNT = 6;
 const PLAYER_COUNT = 3;
 const TOMBSTONES_COUNT = 8;
 const EXIT_POSITION: Position = {
@@ -75,12 +75,12 @@ export const App: FC<{}> = () => {
     EXIT_POSITION,
     TOMBSTONES_COUNT
   );
-  const { ghosts, updateGhosts, getLatestGhosts } = useGhosts(
+  const { ghosts, updateGhosts, setGhosts } = useGhosts(
     binaryGrid,
     EXIT_POSITION,
     GHOST_COUNT
   );
-  const { players, updatePlayers, getLatestPlayers } = usePlayers(
+  const { players, updatePlayers } = usePlayers(
     binaryGrid,
     EXIT_POSITION,
     PLAYER_COUNT
@@ -112,12 +112,12 @@ export const App: FC<{}> = () => {
 
     const binaryGrid = getBinaryGrid();
     const reasoningLoopTimeout = setTimeout(async () => {
-      updateGhosts(binaryGrid, await getLatestPlayers());
-      updatePlayers(binaryGrid, EXIT_POSITION, await getLatestGhosts());
+      updateGhosts(binaryGrid, players);
+      updatePlayers(binaryGrid, EXIT_POSITION, ghosts, setGhosts);
     }, 800);
 
     return () => {
-      clearInterval(reasoningLoopTimeout);
+      clearTimeout(reasoningLoopTimeout);
     };
   }, [
     ghosts,
@@ -126,8 +126,7 @@ export const App: FC<{}> = () => {
     updatePlayers,
     tombstones,
     simulationStatus,
-    getLatestGhosts,
-    getLatestPlayers
+    setGhosts
   ]);
 
   const toggleSimulationStatus = () => {

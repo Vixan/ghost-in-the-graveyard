@@ -9,12 +9,13 @@ import {
 import { useLatestState } from "../../utils/useLatestState";
 import { GRID_CELL_SIZE } from "../Grid";
 import { Agent } from "./Agent";
-import { GhostBeliefs } from "./Ghost";
+import { GhostBeliefs, GhostPlan } from "./Ghost";
 
 export enum PlayerDesires {
   Wander,
   Escape,
-  NotifyGhostFound
+  NotifyGhostFound,
+  TurnIntoGhost
 }
 
 enum PlayerGender {
@@ -32,6 +33,7 @@ export interface PlayerBeliefs {
   isEscaping?: boolean;
   isNotifyingGhostFound?: boolean;
   isCaught?: boolean;
+  isTurnedToGhost?: boolean;
   displayViewArea?: boolean;
 }
 
@@ -43,6 +45,7 @@ export const Player: FC<PlayerBeliefs> = ({
   isEscaping = false,
   isNotifyingGhostFound = false,
   isCaught = false,
+  isTurnedToGhost = false,
   displayViewArea = false
 }) => {
   const [gender, setGender] = useState<PlayerGender>(PlayerGender.Male);
@@ -126,27 +129,28 @@ export const usePlayers = (
     player: PlayerBeliefs,
     ghosts: GhostBeliefs[]
   ): PlayerDesires => {
-    if (
-      ghosts.some(g =>
-        isTargetInViewRadius(player.position, g.position, VIEW_RADIUS)
-      ) &&
-      player.isWandering
-    ) {
-      return PlayerDesires.NotifyGhostFound;
+    if (player.isCaught) {
+      return PlayerDesires.TurnIntoGhost;
     }
 
     if (players.some(p => p.isNotifyingGhostFound && p.id !== player.id)) {
       return PlayerDesires.Escape;
     }
 
+    if (
+      ghosts.some(g =>
+        isTargetInViewRadius(player.position, g.position, VIEW_RADIUS)
+      ) &&
+      player.isWandering &&
+      !players.some(p => p.isNotifyingGhostFound)
+    ) {
+      return PlayerDesires.NotifyGhostFound;
+    }
+
     return player.desire;
   };
 
-  const wander = (
-    binaryGrid: number[][],
-    player: PlayerBeliefs,
-    _: GhostBeliefs[]
-  ) => {
+  const wander = (binaryGrid: number[][], player: PlayerBeliefs) => {
     const randomPosition = getNextRandomAvailablePosition(
       binaryGrid,
       player.position
@@ -197,31 +201,55 @@ export const usePlayers = (
     return player;
   };
 
-  const notifyGhostFound = (
-    _: number[][],
-    player: PlayerBeliefs,
-    ghosts: GhostBeliefs[]
-  ) => {
+  const notifyGhostFound = (player: PlayerBeliefs) => {
     return {
       ...player,
-      isNotifyingGhostFound: true
+      isNotifyingGhostFound: true,
+      isWandering: false
+    };
+  };
+
+  const turnIntoGhost = (
+    player: PlayerBeliefs,
+    ghosts: GhostBeliefs[],
+    setGhosts: (ghosts: GhostBeliefs[]) => void,
+  ) => {
+    const playerTurnedToGhost: GhostBeliefs = {
+      id: ghosts.length,
+      plan: GhostPlan.Wander,
+      position: player.position,
+      displayViewArea: player.displayViewArea
+    };
+    setGhosts([...ghosts, playerTurnedToGhost]);
+
+    return {
+      ...player,
+      isWandering: false,
+      isTurnedToGhost: true
     };
   };
 
   const updatePlayers = (
     binaryGrid: number[][],
     exitPosition: Position,
-    ghosts: GhostBeliefs[]
+    ghosts: GhostBeliefs[],
+    setGhosts: (ghosts: GhostBeliefs[]) => void
   ) => {
-    const plans = {
-      [PlayerDesires.Wander]: wander,
-      [PlayerDesires.Escape]: escapeToExit,
-      [PlayerDesires.NotifyGhostFound]: notifyGhostFound
-    };
     const playersToUpdate = players
       .map(player => ({ ...player, desire: inferDesires(player, ghosts) }))
-      .map(player => plans[player.desire](binaryGrid, player, ghosts))
-      .map(player => ({ ...player, desire: inferDesires(player, ghosts) }));
+      .map(player => {
+        if (player.desire === PlayerDesires.Wander) {
+          return wander(binaryGrid, player);
+        } else if (player.desire === PlayerDesires.NotifyGhostFound) {
+          return notifyGhostFound(player);
+        } else if (player.desire === PlayerDesires.Escape) {
+          return escapeToExit(binaryGrid, player, ghosts);
+        } else if (player.desire === PlayerDesires.TurnIntoGhost) {
+          return turnIntoGhost(player, ghosts, setGhosts);
+        }
+
+        return player;
+      });
 
     const playersInGame = playersToUpdate.filter(
       p =>
@@ -229,7 +257,7 @@ export const usePlayers = (
           p.isEscaping &&
           p.position.x === exitPosition.x &&
           p.position.y === exitPosition.y
-        )
+        ) && !p.isTurnedToGhost
     );
 
     setPlayers(playersInGame);
