@@ -1,9 +1,10 @@
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useEffect } from "react";
 import { Position } from "../../types/position";
 import {
   getNextRandomAvailablePosition,
   getRandomAvailablePosition
 } from "../../utils/agentUtils";
+import { useLatestState } from "../../utils/useLatestState";
 import { GRID_CELL_SIZE } from "../Grid";
 import { Agent } from "./Agent";
 import { PlayerBeliefs } from "./Player";
@@ -48,7 +49,9 @@ export const useGhosts = (
   exitPosition: Position,
   ghostCount: number
 ) => {
-  const [ghosts, setGhosts] = useState<GhostBeliefs[]>([]);
+  const [ghosts, setGhosts, getLatestGhosts] = useLatestState<GhostBeliefs[]>(
+    []
+  );
 
   useEffect(() => {
     const ghostsToCreate: GhostBeliefs[] = [...Array(ghostCount).keys()].map(
@@ -74,18 +77,6 @@ export const useGhosts = (
     setGhosts(ghostsToCreate.filter(t => t.position));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ghostCount]);
-
-  const renderGhosts = (displayViewArea?: boolean) =>
-    ghosts.map(ghost => (
-      <Ghost
-        key={ghost.id}
-        id={ghost.id}
-        position={ghost.position}
-        plan={ghost.plan}
-        isFound={ghost.isFound}
-        displayViewArea={displayViewArea}
-      />
-    ));
 
   const updateGhosts = (binaryGrid: number[][], players: PlayerBeliefs[]) => {
     const ghostsToUpdate = ghosts.map(ghost => {
@@ -120,5 +111,5 @@ export const useGhosts = (
     setGhosts(ghostsToUpdate);
   };
 
-  return { ghosts, setGhosts, renderGhosts, updateGhosts };
+  return { ghosts, getLatestGhosts, setGhosts, updateGhosts };
 };

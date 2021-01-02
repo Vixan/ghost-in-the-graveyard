@@ -3,36 +3,70 @@ import { Position } from "../../types/position";
 import {
   findPath,
   getNextRandomAvailablePosition,
-  getRandomAvailablePosition
+  getRandomAvailablePosition,
+  isTargetInViewRadius
 } from "../../utils/agentUtils";
+import { useLatestState } from "../../utils/useLatestState";
 import { GRID_CELL_SIZE } from "../Grid";
 import { Agent } from "./Agent";
+import { GhostBeliefs } from "./Ghost";
 
-export enum PlayerPlan {
+export enum PlayerDesires {
   Wander,
-  Escape
+  Escape,
+  NotifyGhostFound
 }
+
+enum PlayerGender {
+  Male,
+  Female
+}
+
+const VIEW_RADIUS = 1;
 
 export interface PlayerBeliefs {
   id: number;
   position: Position;
-  plan: PlayerPlan;
+  desire: PlayerDesires;
+  isWandering?: boolean;
   isEscaping?: boolean;
+  isNotifyingGhostFound?: boolean;
+  isCaught?: boolean;
   displayViewArea?: boolean;
 }
 
 export const Player: FC<PlayerBeliefs> = ({
   id,
   position,
-  plan,
+  desire,
+  isWandering = true,
   isEscaping = false,
+  isNotifyingGhostFound = false,
+  isCaught = false,
   displayViewArea = false
 }) => {
-  const [playerIcon, setPlayerIcon] = useState<string>("🧍‍♂️");
+  const [gender, setGender] = useState<PlayerGender>(PlayerGender.Male);
+  const [icon, setIcon] = useState<string>("");
 
   useEffect(() => {
-    setPlayerIcon(Math.random() > 0.5 ? "🧍‍♂️" : "🧍‍♀️");
+    const gender =
+      Math.random() > 0.5 ? PlayerGender.Male : PlayerGender.Female;
+
+    setGender(gender);
+    setIcon(gender === PlayerGender.Male ? "🚶‍♂️" : "🚶‍♀️");
   }, []);
+
+  useEffect(() => {
+    if (isEscaping) {
+      setIcon(gender === PlayerGender.Male ? "🏃‍♂️" : "🏃‍♀️");
+    }
+  }, [gender, isEscaping]);
+
+  useEffect(() => {
+    if (isNotifyingGhostFound) {
+      setIcon(gender === PlayerGender.Male ? "🧍‍♂️" : "🧍‍♀️");
+    }
+  }, [gender, isNotifyingGhostFound]);
 
   return (
     <Agent
@@ -41,9 +75,11 @@ export const Player: FC<PlayerBeliefs> = ({
       y={position.y * GRID_CELL_SIZE}
       width={GRID_CELL_SIZE}
       height={GRID_CELL_SIZE}
-      color="#0a9dae"
-      text={playerIcon}
-      viewRadius={1}
+      color={
+        isNotifyingGhostFound ? "#ffee88" : isCaught ? "#CC5A71" : "#0a9dae"
+      }
+      text={icon}
+      viewRadius={VIEW_RADIUS}
       displayViewArea={displayViewArea}
     />
   );
@@ -54,7 +90,9 @@ export const usePlayers = (
   exitPosition: Position,
   playerCount: number
 ) => {
-  const [players, setPlayers] = useState<PlayerBeliefs[]>([]);
+  const [players, setPlayers, getLatestPlayers] = useLatestState<
+    PlayerBeliefs[]
+  >([]);
 
   useEffect(() => {
     const playersToCreate: PlayerBeliefs[] = [...Array(playerCount).keys()].map(
@@ -71,8 +109,11 @@ export const usePlayers = (
         return {
           id: i,
           position: randomPosition,
+          isWandering: true,
           isEscaping: false,
-          plan: PlayerPlan.Wander
+          isNotifyingGhostFound: false,
+          isCaught: false,
+          desire: PlayerDesires.Wander
         };
       }
     );
@@ -81,66 +122,118 @@ export const usePlayers = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playerCount]);
 
-  const renderPlayers = (displayViewArea?: boolean) =>
-    players.map(player => (
-      <Player
-        key={player.id}
-        id={player.id}
-        position={player.position}
-        plan={player.plan}
-        isEscaping={player.isEscaping}
-        displayViewArea={displayViewArea}
-      />
-    ));
+  const inferDesires = (
+    player: PlayerBeliefs,
+    ghosts: GhostBeliefs[]
+  ): PlayerDesires => {
+    if (
+      ghosts.some(g =>
+        isTargetInViewRadius(player.position, g.position, VIEW_RADIUS)
+      ) &&
+      player.isWandering
+    ) {
+      return PlayerDesires.NotifyGhostFound;
+    }
 
-  const updatePlayers = (binaryGrid: number[][], exitPosition: Position) => {
-    const playersToUpdate = players.map(player => {
-      if (player.plan === PlayerPlan.Wander) {
-        const randomPosition = getNextRandomAvailablePosition(
-          binaryGrid,
-          player.position
-        );
+    if (players.some(p => p.isNotifyingGhostFound && p.id !== player.id)) {
+      return PlayerDesires.Escape;
+    }
 
-        if (randomPosition) {
-          binaryGrid[randomPosition.y][randomPosition.x] = 1;
-          binaryGrid[player.position.y][player.position.x] = 0;
-        }
+    return player.desire;
+  };
 
+  const wander = (
+    binaryGrid: number[][],
+    player: PlayerBeliefs,
+    _: GhostBeliefs[]
+  ) => {
+    const randomPosition = getNextRandomAvailablePosition(
+      binaryGrid,
+      player.position
+    );
+
+    if (randomPosition) {
+      binaryGrid[randomPosition.y][randomPosition.x] = 1;
+      binaryGrid[player.position.y][player.position.x] = 0;
+    }
+
+    return {
+      ...player,
+      position: randomPosition ?? player.position
+    };
+  };
+
+  const escapeToExit = (
+    binaryGrid: number[][],
+    player: PlayerBeliefs,
+    ghosts: GhostBeliefs[]
+  ) => {
+    const pathToExit = findPath(
+      binaryGrid,
+      player.position,
+      exitPosition
+    )?.slice(1)?.[0];
+
+    if (!player.isNotifyingGhostFound && pathToExit?.length > 0) {
+      const isPlayerCaughtByGhost = ghosts.some(g =>
+        isTargetInViewRadius(player.position, g.position, VIEW_RADIUS)
+      );
+      if (isPlayerCaughtByGhost) {
         return {
           ...player,
-          position: randomPosition ?? player.position
+          isCaught: true,
+          isEscaping: false,
+          isWandering: false
         };
       }
 
-      if (player.plan === PlayerPlan.Escape) {
-        const pathToExit = findPath(
-          binaryGrid,
-          player.position,
-          exitPosition
-        )?.slice(1)?.[0];
+      return {
+        ...player,
+        position: { x: pathToExit[0], y: pathToExit[1] },
+        isEscaping: true
+      };
+    }
 
-        if (pathToExit?.length > 0) {
-          return {
-            ...player,
-            position: { x: pathToExit[0], y: pathToExit[1] }
-          };
-        }
-      }
-
-      return player;
-    });
-
-    setPlayers(
-      playersToUpdate.filter(
-        p =>
-          !(
-            p.isEscaping &&
-            p.position.x === exitPosition.x &&
-            p.position.y === exitPosition.y
-          )
-      )
-    );
+    return player;
   };
 
-  return { players, setPlayers, renderPlayers, updatePlayers };
+  const notifyGhostFound = (
+    _: number[][],
+    player: PlayerBeliefs,
+    ghosts: GhostBeliefs[]
+  ) => {
+    return {
+      ...player,
+      isNotifyingGhostFound: true
+    };
+  };
+
+  const updatePlayers = (
+    binaryGrid: number[][],
+    exitPosition: Position,
+    ghosts: GhostBeliefs[]
+  ) => {
+    const plans = {
+      [PlayerDesires.Wander]: wander,
+      [PlayerDesires.Escape]: escapeToExit,
+      [PlayerDesires.NotifyGhostFound]: notifyGhostFound
+    };
+    const playersToUpdate = players
+      .map(player => ({ ...player, desire: inferDesires(player, ghosts) }))
+      .map(player => plans[player.desire](binaryGrid, player, ghosts))
+      .map(player => ({ ...player, desire: inferDesires(player, ghosts) }));
+
+    const playersInGame = playersToUpdate.filter(
+      p =>
+        !(
+          p.isEscaping &&
+          p.position.x === exitPosition.x &&
+          p.position.y === exitPosition.y
+        )
+    );
+
+    setPlayers(playersInGame);
+  };
+
+  return { players, setPlayers, getLatestPlayers, updatePlayers };
 };

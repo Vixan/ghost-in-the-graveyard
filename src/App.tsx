@@ -2,12 +2,13 @@ import React, { FC, useEffect, useState } from "react";
 import { Layer, Stage } from "react-konva";
 import styled, { css } from "styled-components";
 import { Exit } from "./components/agents/Exit";
-import { useGhosts } from "./components/agents/Ghost";
-import { usePlayers } from "./components/agents/Player";
+import { Ghost, useGhosts } from "./components/agents/Ghost";
+import { Player, usePlayers } from "./components/agents/Player";
 import { useTombstones } from "./components/agents/Tombstone";
-import { Grid, GRID_CELL_SIZE, GridSize } from "./components/Grid";
+import { Grid, GridSize, GRID_CELL_SIZE } from "./components/Grid";
 import { ToggleButton } from "./components/ui/ToggleButton";
 import { Position } from "./types/position";
+import { createEmptyGrid } from "./utils/agentUtils";
 
 const Wrapper = styled.div`
   display: flex;
@@ -49,13 +50,13 @@ const ActionsPanel = styled.div`
   color: #aaaaaa;
 `;
 
-export const GRID_SIZE: GridSize = { width: 10, height: 10 };
-const GHOST_COUNT = 6;
-const PLAYER_COUNT = 6;
-const TOMBSTONES_COUNT = 16;
+const GRID_SIZE: GridSize = { width: 10, height: 10 };
+const GHOST_COUNT = 3;
+const PLAYER_COUNT = 3;
+const TOMBSTONES_COUNT = 8;
 const EXIT_POSITION: Position = {
-  x: GRID_SIZE.height / 2 - 1,
-  y: GRID_SIZE.width - 1
+  x: Math.floor(GRID_SIZE.width / 2) - 1,
+  y: GRID_SIZE.height - 1
 };
 
 enum SimulationStatus {
@@ -68,33 +69,29 @@ export const App: FC<{}> = () => {
   const [simulationStatus, setSimulationStatus] = useState(
     SimulationStatus.Paused
   );
-  const binaryGrid = new Array(GRID_SIZE.width)
-    .fill(0)
-    .map(() => new Array(GRID_SIZE.height).fill(0));
+  const binaryGrid = createEmptyGrid(GRID_SIZE.height, GRID_SIZE.width);
   const { tombstones, renderedTombstones } = useTombstones(
     binaryGrid,
     EXIT_POSITION,
     TOMBSTONES_COUNT
   );
-  const { ghosts, renderGhosts, updateGhosts } = useGhosts(
+  const { ghosts, updateGhosts, getLatestGhosts } = useGhosts(
     binaryGrid,
     EXIT_POSITION,
     GHOST_COUNT
   );
-  const { players, renderPlayers, updatePlayers } = usePlayers(
+  const { players, updatePlayers, getLatestPlayers } = usePlayers(
     binaryGrid,
     EXIT_POSITION,
     PLAYER_COUNT
   );
-  const [displayAgentViewArea, setDisplayAgentViewArea] = useState<boolean>(
+  const [displayAgentsViewArea, setDisplayAgentsViewArea] = useState<boolean>(
     false
   );
 
   useEffect(() => {
     const getBinaryGrid = (): number[][] => {
-      let grid = new Array(GRID_SIZE.width)
-        .fill(0)
-        .map(() => new Array(GRID_SIZE.height).fill(0));
+      let grid = createEmptyGrid(GRID_SIZE.height, GRID_SIZE.width);
 
       ghosts.forEach(ghost => {
         grid[ghost.position.y][ghost.position.x] = 1;
@@ -113,15 +110,14 @@ export const App: FC<{}> = () => {
       return;
     }
 
-    const reasoningLoop = setInterval(() => {
-      const binaryGrid = getBinaryGrid();
-
-      updateGhosts(binaryGrid, players);
-      updatePlayers(binaryGrid, EXIT_POSITION);
-    }, 500);
+    const binaryGrid = getBinaryGrid();
+    const reasoningLoopTimeout = setTimeout(async () => {
+      updateGhosts(binaryGrid, await getLatestPlayers());
+      updatePlayers(binaryGrid, EXIT_POSITION, await getLatestGhosts());
+    }, 800);
 
     return () => {
-      clearInterval(reasoningLoop);
+      clearInterval(reasoningLoopTimeout);
     };
   }, [
     ghosts,
@@ -129,7 +125,9 @@ export const App: FC<{}> = () => {
     players,
     updatePlayers,
     tombstones,
-    simulationStatus
+    simulationStatus,
+    getLatestGhosts,
+    getLatestPlayers
   ]);
 
   const toggleSimulationStatus = () => {
@@ -152,10 +150,10 @@ export const App: FC<{}> = () => {
         </PlayButton>
 
         <div style={{ display: "flex", justifyItems: "center", gap: 16 }}>
-          Display agent view area
+          Display agents view area
           <ToggleButton
-            selected={displayAgentViewArea}
-            onChange={() => setDisplayAgentViewArea(!displayAgentViewArea)}
+            selected={displayAgentsViewArea}
+            onChange={() => setDisplayAgentsViewArea(!displayAgentsViewArea)}
             selectedText="✔"
             deselectedText=""
           />
@@ -178,9 +176,29 @@ export const App: FC<{}> = () => {
 
           {renderedTombstones}
 
-          {renderGhosts(displayAgentViewArea)}
+          {ghosts.map(ghost => (
+            <Ghost
+              key={ghost.id}
+              id={ghost.id}
+              position={ghost.position}
+              plan={ghost.plan}
+              isFound={ghost.isFound}
+              displayViewArea={displayAgentsViewArea}
+            />
+          ))}
 
-          {renderPlayers(displayAgentViewArea)}
+          {players.map(player => (
+            <Player
+              key={player.id}
+              id={player.id}
+              position={player.position}
+              desire={player.desire}
+              isEscaping={player.isEscaping}
+              isNotifyingGhostFound={player.isNotifyingGhostFound}
+              isCaught={player.isCaught}
+              displayViewArea={displayAgentsViewArea}
+            />
+          ))}
         </Layer>
       </Stage>
     </Wrapper>

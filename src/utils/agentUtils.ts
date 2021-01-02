@@ -22,6 +22,7 @@ export const getNextRandomAvailablePosition = (
   return possibleNextPositions[randomMovementDirection];
 };
 
+// TODO: Use "E" as a marker on the grid for the exit instead of passing it as a parameter
 export const getRandomAvailablePosition = (
   binaryGrid: number[][],
   exitPosition: Position
@@ -42,6 +43,19 @@ export const getRandomAvailablePosition = (
   return availablePositions[random(availablePositions.length)];
 };
 
+export const isTargetInViewRadius = (
+  source: Position,
+  target: Position,
+  viewRadius: number
+) => {
+  return (
+    (source.x === target.x && source.y + viewRadius === target.y) ||
+    (source.y === target.y && source.x + viewRadius === target.x) ||
+    (source.x === target.x && source.y - viewRadius === target.y) ||
+    (source.y === target.y && source.x - viewRadius === target.x)
+  );
+};
+
 export const findPath = (
   binaryGrid: number[][],
   startCell: Position,
@@ -60,3 +74,6 @@ export const findPath = (
 
   return path;
 };
+
+export const createEmptyGrid = (height: number, width: number) =>
+  new Array(height).fill(0).map(() => new Array(width).fill(0));
