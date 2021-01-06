@@ -9,7 +9,7 @@ import {
 import { useLatestState } from "../../utils/useLatestState";
 import { GRID_CELL_SIZE } from "../Grid";
 import { Agent } from "./Agent";
-import { GhostBeliefs, GhostPlan } from "./Ghost";
+import { GhostBeliefs, GhostDesires } from "./Ghost";
 
 export enum PlayerDesires {
   Wander,
@@ -23,7 +23,7 @@ enum PlayerGender {
   Female
 }
 
-const VIEW_RADIUS = 1;
+const PLAYER_VIEW_RADIUS = 1;
 
 export interface PlayerBeliefs {
   id: number;
@@ -82,7 +82,7 @@ export const Player: FC<PlayerBeliefs> = ({
         isNotifyingGhostFound ? "#ffee88" : isCaught ? "#CC5A71" : "#0a9dae"
       }
       text={icon}
-      viewRadius={VIEW_RADIUS}
+      viewRadius={PLAYER_VIEW_RADIUS}
       displayViewArea={displayViewArea}
     />
   );
@@ -139,7 +139,7 @@ export const usePlayers = (
 
     if (
       ghosts.some(g =>
-        isTargetInViewRadius(player.position, g.position, VIEW_RADIUS)
+        isTargetInViewRadius(player.position, g.position, PLAYER_VIEW_RADIUS)
       ) &&
       player.isWandering &&
       !players.some(p => p.isNotifyingGhostFound)
@@ -180,7 +180,7 @@ export const usePlayers = (
 
     if (!player.isNotifyingGhostFound && pathToExit?.length > 0) {
       const isPlayerCaughtByGhost = ghosts.some(g =>
-        isTargetInViewRadius(player.position, g.position, VIEW_RADIUS)
+        isTargetInViewRadius(player.position, g.position, PLAYER_VIEW_RADIUS)
       );
       if (isPlayerCaughtByGhost) {
         return {
@@ -216,7 +216,7 @@ export const usePlayers = (
   ) => {
     const playerTurnedToGhost: GhostBeliefs = {
       id: ghosts.length,
-      plan: GhostPlan.Wander,
+      desire: GhostDesires.Wander,
       position: player.position,
       displayViewArea: player.displayViewArea
     };

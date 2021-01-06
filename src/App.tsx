@@ -51,9 +51,9 @@ const ActionsPanel = styled.div`
 `;
 
 const GRID_SIZE: GridSize = { width: 10, height: 10 };
-const GHOST_COUNT = 6;
-const PLAYER_COUNT = 3;
-const TOMBSTONES_COUNT = 8;
+const GHOST_COUNT = 1;
+const PLAYER_COUNT = 6;
+const TOMBSTONES_COUNT = 12;
 const EXIT_POSITION: Position = {
   x: Math.floor(GRID_SIZE.width / 2) - 1,
   y: GRID_SIZE.height - 1
@@ -89,45 +89,41 @@ export const App: FC<{}> = () => {
     false
   );
 
-  useEffect(() => {
-    const getBinaryGrid = (): number[][] => {
-      let grid = createEmptyGrid(GRID_SIZE.height, GRID_SIZE.width);
+  useEffect(
+    () => {
+      const getBinaryGrid = (): number[][] => {
+        let grid = createEmptyGrid(GRID_SIZE.height, GRID_SIZE.width);
 
-      ghosts.forEach(ghost => {
-        grid[ghost.position.y][ghost.position.x] = 1;
-      });
-      players.forEach(player => {
-        grid[player.position.y][player.position.x] = 1;
-      });
-      tombstones.forEach(tombstone => {
-        grid[tombstone.position.y][tombstone.position.x] = 1;
-      });
+        ghosts.forEach(ghost => {
+          grid[ghost.position.y][ghost.position.x] = 1;
+        });
+        players.forEach(player => {
+          grid[player.position.y][player.position.x] = 1;
+        });
+        tombstones.forEach(tombstone => {
+          grid[tombstone.position.y][tombstone.position.x] = 1;
+        });
 
-      return grid;
-    };
+        return grid;
+      };
 
-    if (simulationStatus !== SimulationStatus.Running) {
-      return;
-    }
+      if (simulationStatus !== SimulationStatus.Running) {
+        return;
+      }
 
-    const binaryGrid = getBinaryGrid();
-    const reasoningLoopTimeout = setTimeout(async () => {
-      updateGhosts(binaryGrid, players);
-      updatePlayers(binaryGrid, EXIT_POSITION, ghosts, setGhosts);
-    }, 800);
+      const binaryGrid = getBinaryGrid();
+      const reasoningLoopTimeout = setTimeout(async () => {
+        updateGhosts(binaryGrid, players);
+        updatePlayers(binaryGrid, EXIT_POSITION, ghosts, setGhosts);
+      }, 800);
 
-    return () => {
-      clearTimeout(reasoningLoopTimeout);
-    };
-  }, [
-    ghosts,
-    updateGhosts,
-    players,
-    updatePlayers,
-    tombstones,
-    simulationStatus,
-    setGhosts
-  ]);
+      return () => {
+        clearTimeout(reasoningLoopTimeout);
+      };
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ghosts, players, tombstones, simulationStatus]
+  );
 
   const toggleSimulationStatus = () => {
     if (simulationStatus === SimulationStatus.Running) {
@@ -177,11 +173,8 @@ export const App: FC<{}> = () => {
 
           {ghosts.map(ghost => (
             <Ghost
+              {...ghost}
               key={ghost.id}
-              id={ghost.id}
-              position={ghost.position}
-              plan={ghost.plan}
-              isFound={ghost.isFound}
               displayViewArea={displayAgentsViewArea}
             />
           ))}

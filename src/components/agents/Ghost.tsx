@@ -1,23 +1,28 @@
 import React, { FC, useEffect } from "react";
 import { Position } from "../../types/position";
 import {
+  findPath,
   getNextRandomAvailablePosition,
-  getRandomAvailablePosition
+  getRandomAvailablePosition,
+  isTargetInViewRadius
 } from "../../utils/agentUtils";
 import { useLatestState } from "../../utils/useLatestState";
 import { GRID_CELL_SIZE } from "../Grid";
 import { Agent } from "./Agent";
 import { PlayerBeliefs } from "./Player";
 
-export enum GhostPlan {
+export enum GhostDesires {
   Wander,
-  ChasePlayer
+  ChasePlayers
 }
+
+const GHOST_VIEW_RADIUS = 1;
 
 export interface GhostBeliefs {
   id: number;
   position: Position;
-  plan: GhostPlan;
+  desire: GhostDesires;
+  isWandering?: boolean;
   isFound?: boolean;
   displayViewArea?: boolean;
 }
@@ -25,7 +30,8 @@ export interface GhostBeliefs {
 export const Ghost: FC<GhostBeliefs> = ({
   id,
   position,
-  plan,
+  desire,
+  isWandering = true,
   isFound = false,
   displayViewArea = false
 }) => {
@@ -45,7 +51,7 @@ export const Ghost: FC<GhostBeliefs> = ({
 };
 
 export const useGhosts = (
-  binaryGrid: number[][],
+  initialBinaryGrid: number[][],
   exitPosition: Position,
   ghostCount: number
 ) => {
@@ -57,19 +63,20 @@ export const useGhosts = (
     const ghostsToCreate: GhostBeliefs[] = [...Array(ghostCount).keys()].map(
       i => {
         const randomPosition = getRandomAvailablePosition(
-          binaryGrid,
+          initialBinaryGrid,
           exitPosition
         );
 
         if (randomPosition) {
-          binaryGrid[randomPosition.y][randomPosition.x] = 1;
+          initialBinaryGrid[randomPosition.y][randomPosition.x] = 1;
         }
 
         return {
           id: i,
           position: randomPosition,
           isFound: false,
-          plan: GhostPlan.Wander
+          isWandering: true,
+          desire: GhostDesires.Wander
         };
       }
     );
@@ -78,35 +85,101 @@ export const useGhosts = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ghostCount]);
 
-  const updateGhosts = (binaryGrid: number[][], players: PlayerBeliefs[]) => {
-    const ghostsToUpdate = ghosts.map(ghost => {
-      if (ghost.plan === GhostPlan.Wander) {
-        const randomPosition = getNextRandomAvailablePosition(
-          binaryGrid,
-          ghost.position
-        );
+  const inferDesires = (
+    ghost: GhostBeliefs,
+    players: PlayerBeliefs[]
+  ): GhostDesires => {
+    if (
+      ghost.isWandering &&
+      players.some(
+        player =>
+          player.isWandering &&
+          isTargetInViewRadius(
+            ghost.position,
+            player.position,
+            GHOST_VIEW_RADIUS
+          )
+      )
+    ) {
+      return GhostDesires.ChasePlayers;
+    }
 
-        if (randomPosition) {
-          binaryGrid[randomPosition.y][randomPosition.x] = 1;
-          binaryGrid[ghost.position.y][ghost.position.x] = 0;
+    if (ghost.isWandering) {
+      return GhostDesires.Wander;
+    }
+
+    return ghost.desire;
+  };
+
+  const wander = (binaryGrid: number[][], ghost: GhostBeliefs) => {
+    const randomPosition = getNextRandomAvailablePosition(
+      binaryGrid,
+      ghost.position
+    );
+
+    if (randomPosition) {
+      binaryGrid[randomPosition.y][randomPosition.x] = 1;
+      binaryGrid[ghost.position.y][ghost.position.x] = 0;
+    }
+
+    return {
+      ...ghost,
+      position: randomPosition ?? ghost.position
+    };
+  };
+
+  // FIXME: Player overlapping with Ghost when escaping
+  const chasePlayers = (
+    binaryGrid: number[][],
+    ghost: GhostBeliefs,
+    players: PlayerBeliefs[]
+  ) => {
+    const pathsToAllPlayers = players.map(p => {
+      // INFO: Dirty fix to make sure the target player is on a walkable cell
+      const binaryGridClone = JSON.parse(JSON.stringify(binaryGrid));
+      binaryGridClone[p.position.y][p.position.x] = 0;
+
+      return findPath(binaryGridClone, ghost.position, p.position)?.slice(
+        1
+      )?.[0];
+    });
+    
+    if (pathsToAllPlayers[0]?.length > 0) {
+      const pathToClosestPlayer = pathsToAllPlayers.reduce(
+        (closestPath, currentPath) =>
+          currentPath?.length > closestPath?.length ? currentPath : closestPath,
+        pathsToAllPlayers[0] ?? Infinity
+      );
+
+      if (pathToClosestPlayer) {
+        return {
+          ...ghost,
+          position: { x: pathToClosestPlayer[0], y: pathToClosestPlayer[1] },
+          isFound: true,
+          isWandering: false
+        };
+      }
+    }
+
+    return { ...ghost, isWandering: false, isFound: true };
+  };
+
+  const updateGhosts = (binaryGrid: number[][], players: PlayerBeliefs[]) => {
+    const ghostsToUpdate = ghosts
+      .map(ghost => ({ ...ghost, desire: inferDesires(ghost, players) }))
+      .map(ghost => {
+        if (ghost.desire === GhostDesires.Wander) {
+          return wander(binaryGrid, ghost);
+        } else if (ghost.desire === GhostDesires.ChasePlayers) {
+          return chasePlayers(
+            binaryGrid,
+            ghost,
+            players.filter(p => p.isEscaping)
+          );
         }
 
-        return {
-          ...ghost,
-          position: randomPosition ?? ghost.position
-        };
-      }
-
-      if (players.some(player => player.position === ghost.position)) {
-        return {
-          ...ghost,
-          isFound: true,
-          plan: GhostPlan.ChasePlayer
-        };
-      }
-
-      return ghost;
-    });
+        return ghost;
+      });
 
     setGhosts(ghostsToUpdate);
   };
