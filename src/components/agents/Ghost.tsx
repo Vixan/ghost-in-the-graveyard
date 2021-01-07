@@ -5,7 +5,7 @@ import {
   getNextRandomAvailablePosition,
   getRandomAvailablePosition,
   isTargetInViewRadius
-} from "../../utils/agentUtils";
+} from "../../utils/positionUtils";
 import { useLatestState } from "../../utils/useLatestState";
 import { GRID_CELL_SIZE } from "../Grid";
 import { Agent } from "./Agent";
@@ -30,9 +30,6 @@ export interface GhostBeliefs {
 export const Ghost: FC<GhostBeliefs> = ({
   id,
   position,
-  desire,
-  isWandering = true,
-  isFound = false,
   displayViewArea = false
 }) => {
   return (
@@ -128,14 +125,13 @@ export const useGhosts = (
     };
   };
 
-  // FIXME: Player overlapping with Ghost when escaping
   const chasePlayers = (
     binaryGrid: number[][],
     ghost: GhostBeliefs,
     players: PlayerBeliefs[]
   ) => {
     const pathsToAllPlayers = players.map(p => {
-      // INFO: Dirty fix to make sure the target player is on a walkable cell
+      // INFO: Dirty fix to make sure the target player is a "walkable" cell
       const binaryGridClone = JSON.parse(JSON.stringify(binaryGrid));
       binaryGridClone[p.position.y][p.position.x] = 0;
 
@@ -143,7 +139,7 @@ export const useGhosts = (
         1
       )?.[0];
     });
-    
+
     if (pathsToAllPlayers[0]?.length > 0) {
       const pathToClosestPlayer = pathsToAllPlayers.reduce(
         (closestPath, currentPath) =>

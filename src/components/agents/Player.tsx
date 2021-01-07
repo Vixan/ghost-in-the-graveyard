@@ -5,7 +5,7 @@ import {
   getNextRandomAvailablePosition,
   getRandomAvailablePosition,
   isTargetInViewRadius
-} from "../../utils/agentUtils";
+} from "../../utils/positionUtils";
 import { useLatestState } from "../../utils/useLatestState";
 import { GRID_CELL_SIZE } from "../Grid";
 import { Agent } from "./Agent";
@@ -40,12 +40,9 @@ export interface PlayerBeliefs {
 export const Player: FC<PlayerBeliefs> = ({
   id,
   position,
-  desire,
-  isWandering = true,
   isEscaping = false,
   isNotifyingGhostFound = false,
   isCaught = false,
-  isTurnedToGhost = false,
   displayViewArea = false
 }) => {
   const [gender, setGender] = useState<PlayerGender>(PlayerGender.Male);
@@ -212,7 +209,7 @@ export const usePlayers = (
   const turnIntoGhost = (
     player: PlayerBeliefs,
     ghosts: GhostBeliefs[],
-    setGhosts: (ghosts: GhostBeliefs[]) => void,
+    setGhosts: (ghosts: GhostBeliefs[]) => void
   ) => {
     const playerTurnedToGhost: GhostBeliefs = {
       id: ghosts.length,
@@ -236,7 +233,10 @@ export const usePlayers = (
     setGhosts: (ghosts: GhostBeliefs[]) => void
   ) => {
     const playersToUpdate = players
-      .map(player => ({ ...player, desire: inferDesires(player, ghosts) }))
+      .map(player => ({
+        ...player,
+        desire: inferDesires(player, ghosts)
+      }))
       .map(player => {
         if (player.desire === PlayerDesires.Wander) {
           return wander(binaryGrid, player);

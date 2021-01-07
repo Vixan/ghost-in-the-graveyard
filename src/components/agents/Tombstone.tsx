@@ -1,6 +1,6 @@
 import React, { FC, useEffect, useState } from "react";
 import { Position } from "../../types/position";
-import { getRandomAvailablePosition } from "../../utils/agentUtils";
+import { getRandomAvailablePosition } from "../../utils/positionUtils";
 import { GRID_CELL_SIZE } from "../Grid";
 import { Agent } from "./Agent";
 

@@ -8,7 +8,7 @@ import { useTombstones } from "./components/agents/Tombstone";
 import { Grid, GridSize, GRID_CELL_SIZE } from "./components/Grid";
 import { ToggleButton } from "./components/ui/ToggleButton";
 import { Position } from "./types/position";
-import { createEmptyGrid } from "./utils/agentUtils";
+import { createEmptyGrid } from "./utils/gridUtils";
 
 const Wrapper = styled.div`
   display: flex;
@@ -51,7 +51,7 @@ const ActionsPanel = styled.div`
 `;
 
 const GRID_SIZE: GridSize = { width: 10, height: 10 };
-const GHOST_COUNT = 1;
+const GHOST_COUNT = 3;
 const PLAYER_COUNT = 6;
 const TOMBSTONES_COUNT = 12;
 const EXIT_POSITION: Position = {
@@ -75,10 +75,10 @@ export const App: FC<{}> = () => {
     EXIT_POSITION,
     TOMBSTONES_COUNT
   );
-  const { ghosts, updateGhosts, setGhosts } = useGhosts(
+  const { ghosts, updateGhosts, setGhosts, getLatestGhosts } = useGhosts(
     binaryGrid,
     EXIT_POSITION,
-    GHOST_COUNT
+    GHOST_COUNT,
   );
   const { players, updatePlayers } = usePlayers(
     binaryGrid,
@@ -114,7 +114,7 @@ export const App: FC<{}> = () => {
       const binaryGrid = getBinaryGrid();
       const reasoningLoopTimeout = setTimeout(async () => {
         updateGhosts(binaryGrid, players);
-        updatePlayers(binaryGrid, EXIT_POSITION, ghosts, setGhosts);
+        updatePlayers(binaryGrid, EXIT_POSITION, await getLatestGhosts(), setGhosts);
       }, 800);
 
       return () => {
