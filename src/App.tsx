@@ -1,12 +1,13 @@
 import React, { FC, useEffect, useState } from "react";
 import { Layer, Stage } from "react-konva";
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 import { Exit } from "./components/agents/Exit";
 import { Ghost, useGhosts } from "./components/agents/Ghost";
 import { Player, usePlayers } from "./components/agents/Player";
 import { useTombstones } from "./components/agents/Tombstone";
 import { Grid, GridSize, GRID_CELL_SIZE } from "./components/Grid";
-import { ToggleButton } from "./components/ui/ToggleButton";
+import { AgentsViewAreaToggle } from "./components/ui/AgentsViewAreaToggle";
+import { SimulationStatusButton } from "./components/ui/SimulationStatusButton";
 import { Position } from "./types/position";
 import { createEmptyGrid } from "./utils/gridUtils";
 
@@ -18,27 +19,6 @@ const Wrapper = styled.div`
   min-width: 100%;
   height: 100vh;
   background-color: #35363a;
-`;
-
-const PlayButton = styled.button<{ paused: boolean }>`
-  border: none;
-  padding: 0.5rem;
-  width: 10rem;
-  border-radius: 10px;
-  background-color: #1d1d20;
-  color: #0dab76;
-  cursor: pointer;
-  opacity: 0.5;
-  &:hover {
-    opacity: 1;
-  }
-
-  ${({ paused }: any) =>
-    paused &&
-    css`
-      background-color: #ffee88;
-      color: #000000;
-    `}
 `;
 
 const ActionsPanel = styled.div`
@@ -78,7 +58,7 @@ export const App: FC<{}> = () => {
   const { ghosts, updateGhosts, setGhosts, getLatestGhosts } = useGhosts(
     binaryGrid,
     EXIT_POSITION,
-    GHOST_COUNT,
+    GHOST_COUNT
   );
   const { players, updatePlayers } = usePlayers(
     binaryGrid,
@@ -114,7 +94,12 @@ export const App: FC<{}> = () => {
       const binaryGrid = getBinaryGrid();
       const reasoningLoopTimeout = setTimeout(async () => {
         updateGhosts(binaryGrid, players);
-        updatePlayers(binaryGrid, EXIT_POSITION, await getLatestGhosts(), setGhosts);
+        updatePlayers(
+          binaryGrid,
+          EXIT_POSITION,
+          await getLatestGhosts(),
+          setGhosts
+        );
       }, 800);
 
       return () => {
@@ -136,24 +121,22 @@ export const App: FC<{}> = () => {
   return (
     <Wrapper>
       <ActionsPanel>
-        <PlayButton
+        <SimulationStatusButton
           onClick={toggleSimulationStatus}
-          paused={simulationStatus === SimulationStatus.Paused}>
-          {simulationStatus === SimulationStatus.Running
-            ? "⚡ Running"
-            : "⏸ Paused"}
-        </PlayButton>
+          paused={simulationStatus === SimulationStatus.Paused}
+          text={
+            simulationStatus === SimulationStatus.Running
+              ? "⚡ Running"
+              : "⏸ Paused"
+          }
+        />
 
-        <div style={{ display: "flex", justifyItems: "center", gap: 16 }}>
-          Display agents view area
-          <ToggleButton
-            selected={displayAgentsViewArea}
-            onChange={() => setDisplayAgentsViewArea(!displayAgentsViewArea)}
-            selectedText="✔"
-            deselectedText=""
-          />
-        </div>
+        <AgentsViewAreaToggle
+          selected={displayAgentsViewArea}
+          onChange={() => setDisplayAgentsViewArea(!displayAgentsViewArea)}
+        />
       </ActionsPanel>
+      
       <Stage
         width={GRID_SIZE.width * GRID_CELL_SIZE}
         height={GRID_SIZE.height * GRID_CELL_SIZE}
