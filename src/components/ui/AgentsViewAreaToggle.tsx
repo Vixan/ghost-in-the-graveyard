@@ -7,6 +7,7 @@ const ToggleWrapper = styled.div`
   justify-items: center;
   gap: 16px;
   line-height: 1.2;
+  color: #aaaaaa;
 `;
 
 interface Props {

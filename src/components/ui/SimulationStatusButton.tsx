@@ -7,8 +7,8 @@ interface ButtonProps {
 
 const Button = styled.button<{ paused: boolean }>`
   border: none;
-  padding: 0.5rem;
-  width: 10rem;
+  padding: 1rem 0.5rem;
+  width: 100%;
   border-radius: 10px;
   background-color: #1d1d20;
   color: #0dab76;
