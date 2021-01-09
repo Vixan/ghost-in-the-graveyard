@@ -7,6 +7,7 @@ import { Button } from "./components/ui/Button";
 import { Position } from "./types/position";
 import { SimulationStatus } from "./types/simulationStatus";
 import { NumberInput } from "./components/ui/NumberInput";
+import { RangeInput } from "./components/ui/RangeInput";
 
 const FullSizeWrapper = styled.div`
   display: flex;
@@ -32,21 +33,26 @@ const ContentWrapper = styled.div`
 const SettingsWrapper = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 32px;
-
-  @media (min-width: 1024px) {
-    align-items: flex-end;
-  }
 `;
 
 const SettingsHeader = styled.div`
   color: #aaaaaa;
   text-align: center;
-  margin: 16px 0;
 
   @media (min-width: 1024px) {
     text-align: right;
+  }
+`;
+
+const SettingsContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+
+  @media (min-width: 1024px) {
+    align-items: flex-end;
   }
 `;
 
@@ -91,6 +97,7 @@ export const App: FC<{}> = () => {
   const [playerCount, setPlayerCount] = useState<number>(MAX_PLAYER_COUNT / 2);
   const [ghostCount, setGhostCount] = useState<number>(MAX_GHOST_COUNT / 2);
   const [resetCount, setResetCount] = useState<number>(0);
+  const [simulationSpeed, setSimulationSpeed] = useState<number>(1);
 
   const toggleSimulationRunningStatus = () => {
     if (simulationStatus === SimulationStatus.New) {
@@ -120,57 +127,68 @@ export const App: FC<{}> = () => {
             <Subtitle>Simulation by Duca Vitalie-Alexandru</Subtitle>
           </SettingsHeader>
 
-          <Switch
-            selected={displayAgentsViewArea}
-            onChange={() => setDisplayAgentsViewArea(!displayAgentsViewArea)}
-            label="Display agents view area"
-          />
-          <NumberInput
-            minValue={MIN_PLAYER_COUNT}
-            maxValue={MAX_PLAYER_COUNT}
-            value={playerCount}
-            label="Player count 🧍‍♂️"
-            onClickDecrement={() =>
-              setPlayerCount(Math.max(playerCount - 1, MIN_PLAYER_COUNT))
-            }
-            onClickIncrement={() =>
-              setPlayerCount(Math.min(playerCount + 1, MAX_PLAYER_COUNT))
-            }
-            onChange={(value: number) => setPlayerCount(value)}
-            disabled={!isSimulationNew}
-          />
-          <NumberInput
-            minValue={MIN_GHOST_COUNT}
-            maxValue={MAX_GHOST_COUNT}
-            value={ghostCount}
-            label="Ghost count 👻"
-            onClickDecrement={() =>
-              setGhostCount(Math.max(ghostCount - 1, MIN_GHOST_COUNT))
-            }
-            onClickIncrement={() =>
-              setGhostCount(Math.min(ghostCount + 1, MAX_GHOST_COUNT))
-            }
-            onChange={(value: number) => setGhostCount(value)}
-            disabled={!isSimulationNew}
-          />
-          <NumberInput
-            minValue={MIN_TOMBSTONES_COUNT}
-            maxValue={MAX_TOMBSTONES_COUNT}
-            value={tombstoneCount}
-            label="Tombstone count ⬛"
-            onClickDecrement={() =>
-              setTombstoneCount(
-                Math.max(tombstoneCount - 1, MIN_TOMBSTONES_COUNT)
-              )
-            }
-            onClickIncrement={() =>
-              setTombstoneCount(
-                Math.min(tombstoneCount + 1, MAX_TOMBSTONES_COUNT)
-              )
-            }
-            onChange={(value: number) => setTombstoneCount(value)}
-            disabled={!isSimulationNew}
-          />
+          <SettingsContent>
+            <Switch
+              selected={displayAgentsViewArea}
+              onChange={() => setDisplayAgentsViewArea(!displayAgentsViewArea)}
+              label="Display agents view area"
+            />
+            <NumberInput
+              minValue={MIN_PLAYER_COUNT}
+              maxValue={MAX_PLAYER_COUNT}
+              value={playerCount}
+              label="Player count 🧍‍♂️"
+              onClickDecrement={() =>
+                setPlayerCount(Math.max(playerCount - 1, MIN_PLAYER_COUNT))
+              }
+              onClickIncrement={() =>
+                setPlayerCount(Math.min(playerCount + 1, MAX_PLAYER_COUNT))
+              }
+              onChange={(value: number) => setPlayerCount(value)}
+              disabled={!isSimulationNew}
+            />
+            <NumberInput
+              minValue={MIN_GHOST_COUNT}
+              maxValue={MAX_GHOST_COUNT}
+              value={ghostCount}
+              label="Ghost count 👻"
+              onClickDecrement={() =>
+                setGhostCount(Math.max(ghostCount - 1, MIN_GHOST_COUNT))
+              }
+              onClickIncrement={() =>
+                setGhostCount(Math.min(ghostCount + 1, MAX_GHOST_COUNT))
+              }
+              onChange={(value: number) => setGhostCount(value)}
+              disabled={!isSimulationNew}
+            />
+            <NumberInput
+              minValue={MIN_TOMBSTONES_COUNT}
+              maxValue={MAX_TOMBSTONES_COUNT}
+              value={tombstoneCount}
+              label="Tombstone count ⬛"
+              onClickDecrement={() =>
+                setTombstoneCount(
+                  Math.max(tombstoneCount - 1, MIN_TOMBSTONES_COUNT)
+                )
+              }
+              onClickIncrement={() =>
+                setTombstoneCount(
+                  Math.min(tombstoneCount + 1, MAX_TOMBSTONES_COUNT)
+                )
+              }
+              onChange={(value: number) => setTombstoneCount(value)}
+              disabled={!isSimulationNew}
+            />
+            <RangeInput
+              minValue={1}
+              maxValue={3}
+              step={1}
+              value={simulationSpeed}
+              label={"Simulation speed"}
+              onChange={(value: number) => setSimulationSpeed(value)}
+              disabled={!isSimulationNew}
+            />
+          </SettingsContent>
 
           <Actions>
             <Button
@@ -185,8 +203,6 @@ export const App: FC<{}> = () => {
               color={
                 isSimulationRunning
                   ? "#aaaaaa"
-                  : isSimulationPaused
-                  ? "#0dab76"
                   : "#000000"
               }
               text={
@@ -216,6 +232,7 @@ export const App: FC<{}> = () => {
           simulationStatus={simulationStatus}
           displayAgentsViewArea={displayAgentsViewArea}
           resetCount={resetCount}
+          simulationSpeed={simulationSpeed}
         />
       </ContentWrapper>
     </FullSizeWrapper>

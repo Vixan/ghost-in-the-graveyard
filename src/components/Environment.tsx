@@ -19,6 +19,7 @@ interface Props {
   simulationStatus: SimulationStatus;
   displayAgentsViewArea: boolean;
   resetCount: number;
+  simulationSpeed: number;
 }
 
 export const Environment: FC<Props> = ({
@@ -29,7 +30,8 @@ export const Environment: FC<Props> = ({
   gridSize,
   simulationStatus,
   displayAgentsViewArea,
-  resetCount
+  resetCount,
+  simulationSpeed
 }) => {
   const windowSize = useWindowSize();
   const [stageUniformScale, setStageUniformScale] = useState<number>(1);
@@ -96,14 +98,14 @@ export const Environment: FC<Props> = ({
           await getLatestGhosts(),
           setGhosts
         );
-      }, 800);
+      }, 1400 - (400 * simulationSpeed));
 
       return () => {
         clearTimeout(reasoningLoopTimeout);
       };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [ghosts, players, tombstones, simulationStatus]
+    [ghosts, players, tombstones, simulationStatus, simulationSpeed]
   );
 
   useEffect(() => {
