@@ -17,6 +17,7 @@ interface Props {
   gridSize: GridSize;
   simulationStatus: SimulationStatus;
   displayAgentsViewArea: boolean;
+  resetCount: number;
 }
 
 export const Environment: FC<Props> = ({
@@ -26,21 +27,25 @@ export const Environment: FC<Props> = ({
   exitPosition,
   gridSize,
   simulationStatus,
-  displayAgentsViewArea
+  displayAgentsViewArea,
+  resetCount
 }) => {
   const binaryGrid = createEmptyGrid(gridSize.height, gridSize.width);
 
   const { tombstones, renderedTombstones } = useTombstones(
     binaryGrid,
     exitPosition,
-    tombstoneCount
+    tombstoneCount,
+    simulationStatus
   );
-  const { ghosts, updateGhosts, setGhosts, getLatestGhosts } = useGhosts(
-    binaryGrid,
-    exitPosition,
-    ghostCount
-  );
-  const { players, updatePlayers } = usePlayers(
+  const {
+    ghosts,
+    updateGhosts,
+    setGhosts,
+    getLatestGhosts,
+    resetGhosts
+  } = useGhosts(binaryGrid, exitPosition, ghostCount);
+  const { players, updatePlayers, resetPlayers } = usePlayers(
     binaryGrid,
     exitPosition,
     playerCount
@@ -87,8 +92,15 @@ export const Environment: FC<Props> = ({
     [ghosts, players, tombstones, simulationStatus]
   );
 
+  useEffect(() => {
+    resetGhosts();
+    resetPlayers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resetCount]);
+
   return (
     <Stage
+      scale={{ x: 1, y: 1 }}
       width={gridSize.width * GRID_CELL_SIZE}
       height={gridSize.height * GRID_CELL_SIZE}
       className="p-4">

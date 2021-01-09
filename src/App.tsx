@@ -2,8 +2,8 @@ import React, { FC, useState } from "react";
 import styled from "styled-components";
 import { Environment } from "./components/Environment";
 import { GridSize } from "./components/Grid";
-import { AgentsViewAreaToggle } from "./components/ui/AgentsViewAreaToggle";
-import { SimulationStatusButton } from "./components/ui/SimulationStatusButton";
+import { Switch } from "./components/ui/Switch";
+import { Button } from "./components/ui/Button";
 import { Position } from "./types/position";
 import { SimulationStatus } from "./types/simulationStatus";
 import { NumberInput } from "./components/ui/NumberInput";
@@ -21,22 +21,49 @@ const ContentWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 64px;
+  margin-bottom: 24px;
 
   @media (min-width: 1024px) {
     flex-direction: row;
+    margin-bottom: 0;
   }
 `;
 
 const SettingsWrapper = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   gap: 32px;
+
+  @media (min-width: 1024px) {
+    align-items: flex-end;
+  }
 `;
 
-const Title = styled.h1`
+const SettingsHeader = styled.div`
   color: #aaaaaa;
-  text-align: right;
+  text-align: center;
+  margin: 16px 0;
+
+  @media (min-width: 1024px) {
+    text-align: right;
+  }
+`;
+
+const Title = styled.div`
+  font-size: 2rem;
+  font-weight: bold;
+`;
+
+const Subtitle = styled.span`
+  font-size: 1rem;
+  color: #777777;
+`;
+
+const Actions = styled.div`
+  display: flex;
+  width: 100%;
+  gap: 16px;
 `;
 
 const GRID_SIZE: GridSize = { width: 10, height: 10 };
@@ -53,7 +80,7 @@ const EXIT_POSITION: Position = {
 
 export const App: FC<{}> = () => {
   const [simulationStatus, setSimulationStatus] = useState(
-    SimulationStatus.Paused
+    SimulationStatus.New
   );
   const [displayAgentsViewArea, setDisplayAgentsViewArea] = useState<boolean>(
     false
@@ -63,26 +90,40 @@ export const App: FC<{}> = () => {
   );
   const [playerCount, setPlayerCount] = useState<number>(MAX_PLAYER_COUNT / 2);
   const [ghostCount, setGhostCount] = useState<number>(MAX_GHOST_COUNT / 2);
+  const [resetCount, setResetCount] = useState<number>(0);
 
-  const toggleSimulationStatus = () => {
-    if (simulationStatus === SimulationStatus.Running) {
+  const toggleSimulationRunningStatus = () => {
+    if (simulationStatus === SimulationStatus.New) {
+      setSimulationStatus(SimulationStatus.Running);
+    } else if (simulationStatus === SimulationStatus.Running) {
       setSimulationStatus(SimulationStatus.Paused);
     } else if (simulationStatus === SimulationStatus.Paused) {
       setSimulationStatus(SimulationStatus.Running);
     }
   };
 
+  const resetSimulation = () => {
+    setSimulationStatus(SimulationStatus.New);
+    setResetCount(resetCount + 1);
+  };
+
+  const isSimulationNew = simulationStatus === SimulationStatus.New;
+  const isSimulationPaused = simulationStatus === SimulationStatus.Paused;
+  const isSimulationRunning = simulationStatus === SimulationStatus.Running;
+
   return (
     <FullSizeWrapper>
       <ContentWrapper>
         <SettingsWrapper>
-          <Title>
-            Ghost in the Graveyard <br /> Simulation
-          </Title>
+          <SettingsHeader>
+            <Title>Ghost in the Graveyard</Title>
+            <Subtitle>Simulation by Duca Vitalie-Alexandru</Subtitle>
+          </SettingsHeader>
 
-          <AgentsViewAreaToggle
+          <Switch
             selected={displayAgentsViewArea}
             onChange={() => setDisplayAgentsViewArea(!displayAgentsViewArea)}
+            label="Display agents view area"
           />
           <NumberInput
             minValue={MIN_PLAYER_COUNT}
@@ -96,6 +137,7 @@ export const App: FC<{}> = () => {
               setPlayerCount(Math.min(playerCount + 1, MAX_PLAYER_COUNT))
             }
             onChange={(value: number) => setPlayerCount(value)}
+            disabled={!isSimulationNew}
           />
           <NumberInput
             minValue={MIN_GHOST_COUNT}
@@ -109,6 +151,7 @@ export const App: FC<{}> = () => {
               setGhostCount(Math.min(ghostCount + 1, MAX_GHOST_COUNT))
             }
             onChange={(value: number) => setGhostCount(value)}
+            disabled={!isSimulationNew}
           />
           <NumberInput
             minValue={MIN_TOMBSTONES_COUNT}
@@ -126,17 +169,42 @@ export const App: FC<{}> = () => {
               )
             }
             onChange={(value: number) => setTombstoneCount(value)}
+            disabled={!isSimulationNew}
           />
 
-          <SimulationStatusButton
-            onClick={toggleSimulationStatus}
-            paused={simulationStatus === SimulationStatus.Paused}
-            text={
-              simulationStatus === SimulationStatus.Running
-                ? "⚡ Running"
-                : "⏸ Paused"
-            }
-          />
+          <Actions>
+            <Button
+              onClick={toggleSimulationRunningStatus}
+              backgroundColor={
+                isSimulationNew
+                  ? "#0dab76"
+                  : isSimulationPaused
+                  ? "#ffee88"
+                  : "#1d1d20"
+              }
+              color={
+                isSimulationRunning
+                  ? "#aaaaaa"
+                  : isSimulationPaused
+                  ? "#0dab76"
+                  : "#000000"
+              }
+              text={
+                isSimulationNew
+                  ? "🚀 Start"
+                  : isSimulationRunning
+                  ? "⚡ Running"
+                  : "⏸ Paused"
+              }
+            />
+
+            <Button
+              onClick={resetSimulation}
+              backgroundColor={"#1d1d20"}
+              color={"#aaaaaa"}
+              text={"🔁 Reset"}
+            />
+          </Actions>
         </SettingsWrapper>
 
         <Environment
@@ -147,6 +215,7 @@ export const App: FC<{}> = () => {
           exitPosition={EXIT_POSITION}
           simulationStatus={simulationStatus}
           displayAgentsViewArea={displayAgentsViewArea}
+          resetCount={resetCount}
         />
       </ContentWrapper>
     </FullSizeWrapper>

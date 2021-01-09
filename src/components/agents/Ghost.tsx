@@ -56,7 +56,7 @@ export const useGhosts = (
     []
   );
 
-  useEffect(() => {
+  const resetGhosts = () => {
     const ghostsToCreate: GhostBeliefs[] = [...Array(ghostCount).keys()].map(
       i => {
         const randomPosition = getRandomAvailablePosition(
@@ -79,6 +79,10 @@ export const useGhosts = (
     );
 
     setGhosts(ghostsToCreate.filter(t => t.position));
+  };
+
+  useEffect(() => {
+    resetGhosts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ghostCount]);
 
@@ -180,5 +184,5 @@ export const useGhosts = (
     setGhosts(ghostsToUpdate);
   };
 
-  return { ghosts, getLatestGhosts, setGhosts, updateGhosts };
+  return { ghosts, getLatestGhosts, setGhosts, updateGhosts, resetGhosts };
 };

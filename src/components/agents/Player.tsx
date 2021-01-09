@@ -94,7 +94,7 @@ export const usePlayers = (
     PlayerBeliefs[]
   >([]);
 
-  useEffect(() => {
+  const resetPlayers = () => {
     const playersToCreate: PlayerBeliefs[] = [...Array(playerCount).keys()].map(
       i => {
         const randomPosition = getRandomAvailablePosition(
@@ -119,6 +119,10 @@ export const usePlayers = (
     );
 
     setPlayers(playersToCreate);
+  };
+
+  useEffect(() => {
+    resetPlayers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playerCount]);
 
@@ -263,5 +267,5 @@ export const usePlayers = (
     setPlayers(playersInGame);
   };
 
-  return { players, setPlayers, getLatestPlayers, updatePlayers };
+  return { players, setPlayers, getLatestPlayers, updatePlayers, resetPlayers };
 };

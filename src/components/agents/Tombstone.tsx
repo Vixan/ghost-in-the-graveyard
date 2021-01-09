@@ -3,6 +3,7 @@ import { Position } from "../../types/position";
 import { getRandomAvailablePosition } from "../../utils/positionUtils";
 import { GRID_CELL_SIZE } from "../Grid";
 import { Agent } from "./Agent";
+import { SimulationStatus } from "../../types/simulationStatus";
 
 export interface TombstoneBeliefs {
   id: number;
@@ -26,11 +27,16 @@ export const Tombstone: FC<TombstoneBeliefs> = ({ id, position }) => {
 export const useTombstones = (
   binaryGrid: number[][],
   exitPosition: Position,
-  tombstoneCount: number
+  tombstoneCount: number,
+  simulationStatus: SimulationStatus
 ) => {
   const [tombstones, setTombstones] = useState<TombstoneBeliefs[]>([]);
 
   useEffect(() => {
+    if (simulationStatus !== SimulationStatus.New) {
+      return;
+    }
+    
     const tombstonesToCreate: TombstoneBeliefs[] = [
       ...Array(tombstoneCount).keys()
     ].map(i => {
@@ -50,8 +56,8 @@ export const useTombstones = (
     });
 
     setTombstones(tombstonesToCreate.filter(t => t.position));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tombstoneCount]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tombstoneCount, simulationStatus]);
 
   const renderedTombstones = tombstones.map(tombstone => (
     <Tombstone

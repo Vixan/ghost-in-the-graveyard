@@ -30,6 +30,10 @@ const Input = styled.input`
   &::-webkit-outer-spin-button {
     -webkit-appearance: none;
   }
+
+  &:disabled {
+    opacity: 0.2;
+  }
 `;
 
 const Button = styled.button`
@@ -41,8 +45,12 @@ const Button = styled.button`
   color: #ffffff;
   cursor: pointer;
   opacity: 0.5;
+  
   &:hover {
     opacity: 1;
+  }
+  &:disabled {
+    opacity: 0.2;
   }
 `;
 
@@ -59,6 +67,7 @@ interface Props {
   minValue: number;
   maxValue: number;
   label?: string;
+  disabled?: boolean;
   onClickIncrement: () => void;
   onClickDecrement: () => void;
   onChange: (value: number) => void;
@@ -69,6 +78,7 @@ export const NumberInput: FC<Props> = ({
   minValue,
   maxValue,
   label,
+  disabled = false,
   onClickIncrement,
   onClickDecrement,
   onChange
@@ -93,15 +103,16 @@ export const NumberInput: FC<Props> = ({
     <Wrapper>
       {label}
       <ButtonWrapper>
-        <DecrementButton onClick={onClickDecrement}>−</DecrementButton>
+        <DecrementButton onClick={onClickDecrement} disabled={disabled}>−</DecrementButton>
         <Input
           type="number"
           min={minValue}
           max={maxValue}
           value={value}
           onChange={onChangeValue}
+          disabled={disabled}
         />
-        <IncrementButton onClick={onClickIncrement}>+</IncrementButton>
+        <IncrementButton onClick={onClickIncrement} disabled={disabled}>+</IncrementButton>
       </ButtonWrapper>
     </Wrapper>
   );

@@ -1,13 +1,13 @@
-import { FC } from "react";
+import React, { FC } from "react";
 import styled, { css } from "styled-components";
 
-interface Props {
-  selected: boolean;
-  onChange: () => void;
-  selectedText?: string;
-  deselectedText?: string;
-  disabled?: boolean;
-}
+const SwitchWrapper = styled.div`
+  display: flex;
+  justify-items: center;
+  gap: 16px;
+  line-height: 1.2;
+  color: #aaaaaa;
+`;
 
 const ToggleWrapper = styled.div`
   width: 36px;
@@ -42,7 +42,8 @@ const InnerButton = styled.div<{ selected: boolean }>`
   transition: all 0.3s ease;
   background-color: #35363a;
   left: 4px;
-  color: #ffffff;
+  color: #35363a;
+  font-weight: bold;
 
   ${({ selected }: { selected: boolean }) =>
     selected &&
@@ -52,17 +53,19 @@ const InnerButton = styled.div<{ selected: boolean }>`
     `}
 `;
 
-export const ToggleButton: FC<Props> = ({
-  selected,
-  onChange,
-  selectedText = "",
-  deselectedText = ""
-}) => {
+interface Props {
+  selected: boolean;
+  onChange: () => void;
+  label?: string;
+}
+
+export const Switch: FC<Props> = ({ selected, onChange, label }) => {
   return (
-    <ToggleWrapper onClick={onChange}>
-      <InnerButton selected={selected}>
-        {selected ? selectedText : deselectedText}
-      </InnerButton>
-    </ToggleWrapper>
+    <SwitchWrapper>
+      <span>{label}</span>
+      <ToggleWrapper onClick={onChange}>
+        <InnerButton selected={selected}>{selected ? "✔" : ""}</InnerButton>
+      </ToggleWrapper>
+    </SwitchWrapper>
   );
 };
