@@ -1,4 +1,4 @@
-import React, { FC, useEffect } from "react";
+import React, { FC, useEffect, useState } from "react";
 import { Layer, Stage } from "react-konva";
 import { Position } from "../types/position";
 import { SimulationStatus } from "../types/simulationStatus";
@@ -8,6 +8,7 @@ import { Ghost, useGhosts } from "./agents/Ghost";
 import { Player, usePlayers } from "./agents/Player";
 import { useTombstones } from "./agents/Tombstone";
 import { Grid, GridSize, GRID_CELL_SIZE } from "./Grid";
+import { useWindowSize } from "../utils/useWindowSize";
 
 interface Props {
   ghostCount: number;
@@ -30,6 +31,9 @@ export const Environment: FC<Props> = ({
   displayAgentsViewArea,
   resetCount
 }) => {
+  const windowSize = useWindowSize();
+  const [stageUniformScale, setStageUniformScale] = useState<number>(1);
+
   const binaryGrid = createEmptyGrid(gridSize.height, gridSize.width);
 
   const { tombstones, renderedTombstones } = useTombstones(
@@ -50,6 +54,16 @@ export const Environment: FC<Props> = ({
     exitPosition,
     playerCount
   );
+
+  useEffect(() => {
+    if (!windowSize?.width) {
+      return;
+    }
+
+    const isMobileOrTablet = windowSize?.width < 1024;
+
+    setStageUniformScale(isMobileOrTablet ? 0.7 : 1);
+  }, [windowSize]);
 
   useEffect(
     () => {
@@ -100,10 +114,9 @@ export const Environment: FC<Props> = ({
 
   return (
     <Stage
-      scale={{ x: 1, y: 1 }}
-      width={gridSize.width * GRID_CELL_SIZE}
-      height={gridSize.height * GRID_CELL_SIZE}
-      className="p-4">
+      scale={{ x: stageUniformScale, y: stageUniformScale }}
+      width={gridSize.width * GRID_CELL_SIZE * stageUniformScale}
+      height={gridSize.height * GRID_CELL_SIZE * stageUniformScale}>
       <Layer>
         <Grid
           cellSize={GRID_CELL_SIZE}
