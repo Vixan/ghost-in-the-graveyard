@@ -22,11 +22,12 @@ const ContentWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 64px;
-  margin-bottom: 24px;
+  margin: 32px 0;
+  align-items: center;
 
   @media (min-width: 1024px) {
     flex-direction: row;
-    margin-bottom: 0;
+    margin: 0;
   }
 `;
 
@@ -34,6 +35,7 @@ const SettingsWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 32px;
+  max-width: 400px;
 `;
 
 const SettingsHeader = styled.div`
@@ -49,7 +51,8 @@ const SettingsContent = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
+  margin-bottom: 16px;
 
   @media (min-width: 1024px) {
     align-items: flex-end;
@@ -62,14 +65,34 @@ const Title = styled.div`
 `;
 
 const Subtitle = styled.span`
-  font-size: 1rem;
+  font-size: 0.75rem;
   color: #777777;
+`;
+
+const Description = styled.p`
+  font-size: 0.75rem;
+  color: #777777;
+  font-style: italic;
 `;
 
 const Actions = styled.div`
   display: flex;
   width: 100%;
   gap: 16px;
+`;
+
+const Link = styled.a`
+  color: #0a9dae;
+`;
+
+const GhostText = styled.span`
+  color: #cc5a71;
+  font-weight: bold;
+`;
+
+const PlayerText = styled.span`
+  color: #0a9dae;
+  font-weight: bold;
 `;
 
 const GRID_SIZE: GridSize = { width: 10, height: 10 };
@@ -98,6 +121,7 @@ export const App: FC<{}> = () => {
   const [ghostCount, setGhostCount] = useState<number>(MAX_GHOST_COUNT / 2);
   const [resetCount, setResetCount] = useState<number>(0);
   const [simulationSpeed, setSimulationSpeed] = useState<number>(1);
+  const [cycleCount, setCycleCount] = useState<number>(0);
 
   const toggleSimulationRunningStatus = () => {
     if (simulationStatus === SimulationStatus.New) {
@@ -124,7 +148,23 @@ export const App: FC<{}> = () => {
         <SettingsWrapper>
           <SettingsHeader>
             <Title>Ghost in the Graveyard</Title>
-            <Subtitle>Simulation by Duca Vitalie-Alexandru</Subtitle>
+            <Subtitle>
+              Simulation by{" "}
+              <Link href="https://github.com/Vixan">
+                Duca Vitalie-Alexandru
+              </Link>
+            </Subtitle>
+
+            <Description>
+              <b>Description: </b>
+              The <GhostText>Ghosts</GhostText> "wander" around the grid world.
+              If a <PlayerText>Player</PlayerText> finds a Ghost, it stops and
+              notifies all other Players that a Ghost has been found. The found
+              Ghost starts moving towards the closest Player other than the one
+              that found it in an attempt to "catch" it. If the Ghost catches a
+              Player, the latter becomes the Ghost. All Players except the one
+              that found the Ghost run to the Exit and disappear from the grid.
+            </Description>
           </SettingsHeader>
 
           <SettingsContent>
@@ -200,17 +240,13 @@ export const App: FC<{}> = () => {
                   ? "#ffee88"
                   : "#1d1d20"
               }
-              color={
-                isSimulationRunning
-                  ? "#aaaaaa"
-                  : "#000000"
-              }
+              color={isSimulationRunning ? "#aaaaaa" : "#000000"}
               text={
                 isSimulationNew
                   ? "🚀 Start"
                   : isSimulationRunning
-                  ? "⚡ Running"
-                  : "⏸ Paused"
+                  ? `⚡ Running (${cycleCount} cycles)`
+                  : `⏸ Paused (${cycleCount} cycles)`
               }
             />
 
@@ -233,6 +269,7 @@ export const App: FC<{}> = () => {
           displayAgentsViewArea={displayAgentsViewArea}
           resetCount={resetCount}
           simulationSpeed={simulationSpeed}
+          incrementCycleCount={() => setCycleCount(cycleCount + 1)}
         />
       </ContentWrapper>
     </FullSizeWrapper>

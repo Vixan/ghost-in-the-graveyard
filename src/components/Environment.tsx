@@ -20,6 +20,7 @@ interface Props {
   displayAgentsViewArea: boolean;
   resetCount: number;
   simulationSpeed: number;
+  incrementCycleCount: () => void;
 }
 
 export const Environment: FC<Props> = ({
@@ -31,7 +32,8 @@ export const Environment: FC<Props> = ({
   simulationStatus,
   displayAgentsViewArea,
   resetCount,
-  simulationSpeed
+  simulationSpeed,
+  incrementCycleCount
 }) => {
   const windowSize = useWindowSize();
   const [stageUniformScale, setStageUniformScale] = useState<number>(1);
@@ -91,6 +93,7 @@ export const Environment: FC<Props> = ({
 
       const binaryGrid = getBinaryGrid();
       const reasoningLoopTimeout = setTimeout(async () => {
+        incrementCycleCount();
         updateGhosts(binaryGrid, players);
         updatePlayers(
           binaryGrid,
@@ -98,7 +101,7 @@ export const Environment: FC<Props> = ({
           await getLatestGhosts(),
           setGhosts
         );
-      }, 1400 - (400 * simulationSpeed));
+      }, 1400 - 400 * simulationSpeed);
 
       return () => {
         clearTimeout(reasoningLoopTimeout);

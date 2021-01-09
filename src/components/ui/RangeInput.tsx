@@ -11,6 +11,8 @@ const Wrapper = styled.div`
 
 const RangeIndicator = styled.div`
   position: absolute;
+  /* top: 20px; */
+  user-select: none;
 `;
 
 const InputWrapper = styled.div`
@@ -49,6 +51,24 @@ const Range = styled.input`
     -webkit-appearance: none;
     margin-top: -4px;
   }
+
+  &::-moz-range-track {
+    width: 100%;
+    height: 8px;
+    cursor: pointer;
+    background: #1d1d20;
+    border-radius: 25px;
+  }
+  &::-moz-range-thumb {
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    -webkit-appearance: none;
+    margin-top: -4px;
+  }
+
   &:focus::-webkit-slider-runnable-track {
     background: #1d1d20;
   }

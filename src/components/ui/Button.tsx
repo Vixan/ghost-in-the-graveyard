@@ -8,12 +8,13 @@ interface ButtonProps {
 
 const StyledButton = styled.button<ButtonProps>`
   border: none;
-  padding: 1rem 0.5rem;
+  padding: 0.5rem;
   width: 100%;
   border-radius: 10px;
   background-color: ${props => props.backgroundColor || "#ffffff"};
   color: ${props => props.color || "#ffffff"};
   cursor: pointer;
+  user-select: none;
   opacity: 0.5;
   &:hover {
     opacity: 1;
