@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "/ghost-in-the-graveyard/static/css/main.e8e5c3ac.chunk.css",
+    "main.js": "/ghost-in-the-graveyard/static/js/main.ea9ab31d.chunk.js",
+    "main.js.map": "/ghost-in-the-graveyard/static/js/main.ea9ab31d.chunk.js.map",
+    "runtime-main.js": "/ghost-in-the-graveyard/static/js/runtime-main.fcc25670.js",
+    "runtime-main.js.map": "/ghost-in-the-graveyard/static/js/runtime-main.fcc25670.js.map",
+    "static/js/2.a319c780.chunk.js": "/ghost-in-the-graveyard/static/js/2.a319c780.chunk.js",
+    "static/js/2.a319c780.chunk.js.map": "/ghost-in-the-graveyard/static/js/2.a319c780.chunk.js.map",
+    "static/js/3.5963c47c.chunk.js": "/ghost-in-the-graveyard/static/js/3.5963c47c.chunk.js",
+    "static/js/3.5963c47c.chunk.js.map": "/ghost-in-the-graveyard/static/js/3.5963c47c.chunk.js.map",
+    "index.html": "/ghost-in-the-graveyard/index.html",
+    "static/css/main.e8e5c3ac.chunk.css.map": "/ghost-in-the-graveyard/static/css/main.e8e5c3ac.chunk.css.map",
+    "static/js/2.a319c780.chunk.js.LICENSE.txt": "/ghost-in-the-graveyard/static/js/2.a319c780.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.fcc25670.js",
+    "static/js/2.a319c780.chunk.js",
+    "static/css/main.e8e5c3ac.chunk.css",
+    "static/js/main.ea9ab31d.chunk.js"
+  ]
+}
